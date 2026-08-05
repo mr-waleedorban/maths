@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathMaster Pro - منصة المستر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); }
+        .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); background-size: 200% 100%; animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .progress-bar { transition: width 1s ease-out; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+    </style>
+</head>
+<body class="gradient-bg text-white min-h-screen">
+
+<!-- ==================== FIREBASE CONFIG ==================== -->
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAL4eH7bPwJ07tPoECrPOdgolsQHLBoaJ0",
+    authDomain: "math-platform00.firebaseapp.com",
+    projectId: "math-platform00",
+    storageBucket: "math-platform00.firebasestorage.app",
+    messagingSenderId: "642584820193",
+    appId: "1:642584820193:web:82ea2537e592c046553aa0"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// البريد الإلكتروني الخاص بالأدمن / المعلم
+const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
+</script>
+
+<!-- ==================== LOADING SCREEN ==================== -->
+<div id="loading-screen" class="flex flex-col items-center justify-center min-h-screen">
+    <div class="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p class="text-slate-400 text-sm">جاري التحقق من الحساب...</p>
+</div>
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="login-screen" class="hidden flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md glass rounded-3xl p-8 shadow-2xl">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-4xl font-bold text-slate-900 mb-4 shadow-lg shadow-amber-500/20">π</div>
+            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-amber-300 to-orange-300 bg-clip-text text-transparent">MathMaster Pro</h1>
+            <p class="text-slate-400 mt-2 text-sm">منصة المستر للرياضيات - تعلم بذكاء</p>
+        </div>
+        
+        <div id="login-error" class="hidden bg-rose-500/20 border border-rose-500/30 text-rose-200 px-4 py-3 rounded-xl text-sm mb-4 text-center"></div>
+        
+        <div class="space-y-3">
+            <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 bg-white text-slate-900 py-3.5 rounded-xl font-bold hover:bg-slate-100 transition-all duration-300 shadow-lg group">
+                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                تسجيل الدخول بحساب Google
+            </button>
+            
+            <div class="relative my-5">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                <div class="relative flex justify-center text-xs"><span class="bg-slate-900 px-3 text-slate-500">أو</span></div>
+            </div>
+            
+            <input type="email" id="email-input" placeholder="البريد الإلكتروني" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50 placeholder-slate-500 transition-all">
+            <input type="password" id="password-input" placeholder="كلمة المرور" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50 placeholder-slate-500 transition-all">
+            
+            <button onclick="signInWithEmail()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-indigo-500/20">
+                تسجيل الدخول
+            </button>
+            <button onclick="signUpWithEmail()" class="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-3.5 rounded-xl font-semibold transition-all duration-300 border border-white/10">
+                إنشاء حساب جديد
+            </button>
+        </div>
+        
+        <p class="text-center text-xs text-slate-600 mt-6">المنصة محمية بـ Firebase Authentication</p>
+    </div>
+</div>
+
+<!-- ==================== STUDENT DASHBOARD ==================== -->
+<div id="student-dashboard" class="hidden">
+    <header class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center font-bold text-slate-900 text-lg">π</div>
+                <div>
+                    <h2 class="font-bold">MathMaster</h2>
+                    <p class="text-[10px] text-slate-400">منصة المستر</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden md:flex items-center gap-2 glass px-3 py-1.5 rounded-full">
+                    <span class="text-amber-400">⭐</span>
+                    <span id="student-points" class="font-bold text-sm">0</span>
+                    <span class="text-[10px] text-slate-400">نقطة</span>
+                </div>
+                <img id="student-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" class="w-9 h-9 rounded-full border-2 border-amber-400/40">
+                <button onclick="logout()" class="text-slate-400 hover:text-rose-400 transition-colors p-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold mb-1">أهلاً يا <span id="student-name">طالب</span>! 👋</h1>
+            <p class="text-slate-400 text-sm">مستعد للدراسة؟ تابع تقدمك اليوم</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="glass-card rounded-2xl p-4 cursor-pointer">
+                <div class="text-2xl mb-1">📚</div>
+                <div id="stat-lessons" class="text-xl font-bold">0</div>
+                <div class="text-[10px] text-slate-400">درس مكتمل</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 cursor-pointer">
+                <div class="text-2xl mb-1">📝</div>
+                <div id="stat-exams" class="text-xl font-bold">0</div>
+                <div class="text-[10px] text-slate-400">امتحان</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 cursor-pointer">
+                <div class="text-2xl mb-1">🎯</div>
+                <div id="stat-progress" class="text-xl font-bold">0%</div>
+                <div class="text-[10px] text-slate-400">التقدم</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 cursor-pointer">
+                <div class="text-2xl mb-1">🏆</div>
+                <div id="stat-rank" class="text-xl font-bold">#--</div>
+                <div class="text-[10px] text-slate-400">ترتيبك</div>
+            </div>
+        </div>
+
+        <!-- Sections -->
+        <h3 class="font-bold text-lg mb-3">📂 الأقسام الدراسية</h3>
+        <div id="sections-grid" class="grid md:grid-cols-3 gap-4 mb-6">
+            <div class="glass-card rounded-2xl p-8 text-center">
+                <div class="shimmer h-32 rounded-xl mb-4"></div>
+                <div class="shimmer h-4 w-24 mx-auto rounded"></div>
+            </div>
+        </div>
+
+        <!-- Exams -->
+        <h3 class="font-bold text-lg mb-3">📝 الامتحانات</h3>
+        <div id="exams-list" class="space-y-3">
+            <div class="glass-card rounded-xl p-5 shimmer h-20"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TEACHER DASHBOARD ==================== -->
+<div id="teacher-dashboard" class="hidden">
+    <header class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center font-bold text-slate-900">👨‍🏫</div>
+                <div>
+                    <h2 class="font-bold">لوحة التحكم (الأدمن)</h2>
+                    <p class="text-[10px] text-slate-400">المستر - رياضيات</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="switchTeacherTab('students')" class="teacher-tab px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-xs font-semibold" data-tab="students">الطلاب</button>
+                <button onclick="switchTeacherTab('exams')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400" data-tab="exams">الامتحانات</button>
+                <button onclick="switchTeacherTab('sections')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400" data-tab="sections">الأقسام</button>
+                <button onclick="logout()" class="text-slate-400 hover:text-rose-400 transition-colors p-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="glass-card rounded-2xl p-4 border-l-4 border-blue-500">
+                <div class="text-blue-400 text-[10px] mb-1">إجمالي الطلاب</div>
+                <div id="t-stat-total" class="text-2xl font-bold">0</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-500">
+                <div class="text-emerald-400 text-[10px] mb-1">النشطين</div>
+                <div id="t-stat-active" class="text-2xl font-bold">0</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 border-l-4 border-amber-500">
+                <div class="text-amber-400 text-[10px] mb-1">متوسط الدرجات</div>
+                <div id="t-stat-avg" class="text-2xl font-bold">0%</div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 border-l-4 border-rose-500">
+                <div class="text-rose-400 text-[10px] mb-1">الامتحانات</div>
+                <div id="t-stat-exams" class="text-2xl font-bold">0</div>
+            </div>
+        </div>
+
+        <!-- Students Tab -->
+        <div id="teacher-tab-students" class="teacher-panel">
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-3">
+                    <h3 class="font-bold">👥 الطلاب المسجلين</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="student-search" oninput="filterStudents()" placeholder="ابحث..." class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-400/50 w-40">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-white/5 text-slate-400 text-xs">
+                            <tr>
+                                <th class="text-right px-4 py-3">الطالب</th>
+                                <th class="text-right px-4 py-3">البريد</th>
+                                <th class="text-right px-4 py-3">التقدم</th>
+                                <th class="text-right px-4 py-3">النقاط</th>
+                                <th class="text-right px-4 py-3">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-students-table" class="divide-y divide-white/5">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exams Tab -->
+        <div id="teacher-tab-exams" class="teacher-panel hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold">📝 الامتحانات</h3>
+                <button onclick="showAddExamModal()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ امتحان جديد</button>
+            </div>
+            <div id="teacher-exams-grid" class="grid md:grid-cols-2 gap-4">
+            </div>
+        </div>
+
+        <!-- Sections Tab -->
+        <div id="teacher-tab-sections" class="teacher-panel hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold">📚 الأقسام الدراسية</h3>
+                <button onclick="showAddSectionModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ قسم جديد</button>
+            </div>
+            <div id="teacher-sections-grid" class="grid md:grid-cols-3 gap-4">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+<div id="lesson-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass bg-slate-900 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 md:p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 id="lesson-modal-title" class="text-xl font-bold">عنوان الدرس</h2>
+            <button onclick="closeModal('lesson-modal')" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-all text-sm">✕</button>
+        </div>
+        <div id="lesson-modal-body" class="space-y-4 text-slate-300 text-sm leading-relaxed"></div>
+        <div class="mt-6 pt-4 border-t border-white/10 flex justify-between">
+            <button onclick="closeModal('lesson-modal')" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">إغلاق</button>
+            <button onclick="completeLesson()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">✓ أكملت الدرس</button>
+        </div>
+    </div>
+</div>
+
+<div id="exam-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
+        <h2 id="exam-modal-title" class="text-xl font-bold mb-4">امتحان جديد</h2>
+        <div class="space-y-3">
+            <input id="exam-title-input" type="text" placeholder="عنوان الامتحان" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+            <select id="exam-section-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+                <option value="">اختر القسم</option>
+            </select>
+            <input id="exam-date-input" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+        </div>
+        <div class="mt-6 flex gap-3">
+            <button onclick="closeModal('exam-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">إلغاء</button>
+            <button onclick="addExam()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<div id="section-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
+        <h2 class="text-xl font-bold mb-4">قسم جديد</h2>
+        <div class="space-y-3">
+            <input id="section-title-input" type="text" placeholder="اسم القسم" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+            <input id="section-desc-input" type="text" placeholder="وصف مختصر" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+            <select id="section-color-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+                <option value="blue">أزرق</option>
+                <option value="emerald">أخضر</option>
+                <option value="rose">وردي</option>
+                <option value="amber">برتقالي</option>
+                <option value="purple">بنفسجي</option>
+            </select>
+        </div>
+        <div class="mt-6 flex gap-3">
+            <button onclick="closeModal('section-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">إلغاء</button>
+            <button onclick="addSection()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold transition-all">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+let currentUser = null;
+let currentRole = 'student';
+let allStudents = [];
+let allSections = [];
+let allExams = [];
+let currentLessonId = null;
+
+const colorMap = {
+    blue: { bg: 'from-blue-600 to-indigo-700', bar: 'bg-blue-500', text: 'text-blue-300', border: 'border-blue-500/20', light: 'bg-blue-500/20' },
+    emerald: { bg: 'from-emerald-600 to-teal-700', bar: 'bg-emerald-500', text: 'text-emerald-300', border: 'border-emerald-500/20', light: 'bg-emerald-500/20' },
+    rose: { bg: 'from-rose-600 to-pink-700', bar: 'bg-rose-500', text: 'text-rose-300', border: 'border-rose-500/20', light: 'bg-rose-500/20' },
+    amber: { bg: 'from-amber-600 to-orange-700', bar: 'bg-amber-500', text: 'text-amber-300', border: 'border-amber-500/20', light: 'bg-amber-500/20' },
+    purple: { bg: 'from-purple-600 to-violet-700', bar: 'bg-purple-500', text: 'text-purple-300', border: 'border-purple-500/20', light: 'bg-purple-500/20' }
+};
+
+// ===== AUTH =====
+function signInWithGoogle() {
+    auth.signInWithPopup(googleProvider)
+        .catch(err => showError(err.message));
+}
+
+function signInWithEmail() {
+    const email = document.getElementById('email-input').value;
+    const password = document.getElementById('password-input').value;
+    if (!email || !password) return showError('اكمل البيانات');
+    auth.signInWithEmailAndPassword(email, password)
+        .catch(err => showError('البريد أو كلمة المرور غير صحيحة'));
+}
+
+function signUpWithEmail() {
+    const email = document.getElementById('email-input').value;
+    const password = document.getElementById('password-input').value;
+    if (!email || !password) return showError('اكمل البيانات');
+    if (password.length < 6) return showError('كلمة المرور لازم 6 حروف على الأقل');
+    
+    auth.createUserWithEmailAndPassword(email, password)
+        .catch(err => showError(err.message));
+}
+
+function logout() {
+    showScreen('loading-screen');
+    auth.signOut().then(() => {
+        currentUser = null;
+        showScreen('login-screen');
+    });
+}
+
+function showError(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+// ===== AUTH STATE LISTENER =====
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUser = user;
+        const userEmail = user.email.toLowerCase();
+        
+        // فحص هل الإيميل هو إيميل الأدمن المخصص
+        const assignedRole = (userEmail === ADMIN_EMAIL.toLowerCase()) ? 'teacher' : 'student';
+
+        db.collection('users').doc(user.uid).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // تحديث الـ Role لو تحول البريد لأدمن
+                if (data.role !== assignedRole) {
+                    db.collection('users').doc(user.uid).update({ role: assignedRole });
+                    data.role = assignedRole;
+                }
+                
+                currentRole = data.role;
+                handleAuthSuccess(user, data);
+            } else {
+                // إنشاء حساب جديد مع تعيين الـ Role الصحيح
+                const newUser = {
+                    name: user.displayName || user.email.split('@')[0],
+                    email: user.email,
+                    role: assignedRole,
+                    points: 0,
+                    progress: 0,
+                    lessonsCompleted: 0,
+                    examsTaken: 0,
+                    photoURL: user.photoURL || '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                db.collection('users').doc(user.uid).set(newUser).then(() => {
+                    currentRole = assignedRole;
+                    handleAuthSuccess(user, newUser);
+                });
+            }
+        }).catch(err => {
+            console.error("Error fetching user role:", err);
+            showError("حدث خطأ في جلب بيانات الحساب");
+        });
+    } else {
+        showScreen('login-screen');
+    }
+});
+
+function handleAuthSuccess(user, data) {
+    document.getElementById('login-error').classList.add('hidden');
+    if (currentRole === 'teacher') {
+        showScreen('teacher-dashboard');
+        loadTeacherData();
+    } else {
+        showScreen('student-dashboard');
+        loadStudentData(user.uid);
+    }
+}
+
+function showScreen(id) {
+    ['loading-screen', 'login-screen', 'student-dashboard', 'teacher-dashboard'].forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+    });
+    document.getElementById(id).classList.remove('hidden');
+}
+
+// ===== STUDENT FUNCTIONS =====
+function loadStudentData(uid) {
+    db.collection('users').doc(uid).onSnapshot(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        document.getElementById('student-name').textContent = data.name || 'طالب';
+        document.getElementById('student-points').textContent = data.points || 0;
+        document.getElementById('stat-lessons').textContent = data.lessonsCompleted || 0;
+        document.getElementById('stat-exams').textContent = data.examsTaken || 0;
+        document.getElementById('stat-progress').textContent = (data.progress || 0) + '%';
+        if (data.photoURL) document.getElementById('student-avatar').src = data.photoURL;
+    });
+
+    db.collection('sections').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allSections = [];
+        const grid = document.getElementById('sections-grid');
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const s = doc.data();
+            s.id = doc.id;
+            allSections.push(s);
+            const c = colorMap[s.color || 'blue'];
+            grid.innerHTML += `
+                <div class="glass-card rounded-2xl overflow-hidden group cursor-pointer" onclick="openLesson('${doc.id}', '${s.title}')">
+                    <div class="h-36 bg-gradient-to-br ${c.bg} flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 20px 20px;"></div>
+                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">${s.icon || '📚'}</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-bold">${s.title}</h3>
+                            <span class="text-[10px] ${c.light} ${c.text} px-2 py-0.5 rounded-full">${s.lessonCount || 0} درس</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-3">${s.description || ''}</p>
+                        <div class="w-full bg-white/10 rounded-full h-1.5">
+                            <div class="${c.bar} h-1.5 rounded-full progress-bar" style="width: ${s.progress || 0}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    db.collection('exams').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        const list = document.getElementById('exams-list');
+        list.innerHTML = '';
+        snap.forEach(doc => {
+            const e = doc.data();
+            const isUpcoming = e.date && new Date(e.date) > new Date();
+            list.innerHTML += `
+                <div class="glass-card rounded-xl p-4 flex items-center justify-between cursor-pointer hover:pl-6 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 ${isUpcoming ? 'bg-amber-500/20' : 'bg-emerald-500/20'} rounded-xl flex items-center justify-center text-lg">${isUpcoming ? '📊' : '✅'}</div>
+                        <div>
+                            <div class="font-semibold text-sm">${e.title}</div>
+                            <div class="text-[10px] text-slate-400">${e.sectionName || 'عام'} ${e.date ? '| ' + e.date : ''}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] ${isUpcoming ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} px-2 py-1 rounded-full">${isUpcoming ? 'قادم' : 'منتهي'}</span>
+                </div>
+            `;
+        });
+    });
+
+    db.collection('users').where('role', '==', 'student').orderBy('points', 'desc').get().then(snap => {
+        let rank = 1;
+        snap.forEach(doc => {
+            if (doc.id === uid) {
+                document.getElementById('stat-rank').textContent = '#' + rank;
+                return;
+            }
+            rank++;
+        });
+    });
+}
+
+function openLesson(sectionId, title) {
+    currentLessonId = sectionId;
+    document.getElementById('lesson-modal-title').textContent = title;
+    document.getElementById('lesson-modal-body').innerHTML = `
+        <div class="bg-white/5 rounded-xl p-5 mb-4">
+            <h4 class="font-bold text-amber-300 mb-3">🎯 الهدف من الدرس</h4>
+            <p>في هذا الدرس هتتعلم المفاهيم الأساسية مع تمارين تفاعلية.</p>
+        </div>
+        <div class="bg-white/5 rounded-xl p-5 mb-4">
+            <h4 class="font-bold text-blue-300 mb-3">📖 المحتوى</h4>
+            <ul class="list-disc list-inside space-y-2 text-slate-300">
+                <li>مقدمة في الموضوع</li>
+                <li>القواعد الأساسية</li>
+                <li>أمثلة تطبيقية</li>
+                <li>تمارين للتدريب</li>
+            </ul>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5">
+            <h4 class="font-bold text-amber-300 mb-3">💡 تلميح</h4>
+            <p>ركز في الأمثلة وحاول تحلها لوحدك قبل ما تشوف الحل.</p>
+        </div>
+    `;
+    document.getElementById('lesson-modal').classList.remove('hidden');
+}
+
+function completeLesson() {
+    if (!currentUser || !currentLessonId) return;
+    const uid = currentUser.uid;
+    
+    db.collection('users').doc(uid).update({
+        lessonsCompleted: firebase.firestore.FieldValue.increment(1),
+        points: firebase.firestore.FieldValue.increment(50),
+        progress: firebase.firestore.FieldValue.increment(5)
+    }).then(() => {
+        alert('🎉 تم إكمال الدرس! +50 نقطة');
+        closeModal('lesson-modal');
+    });
+}
+
+// ===== TEACHER FUNCTIONS =====
+function loadTeacherData() {
+    db.collection('users').where('role', '==', 'student').onSnapshot(snap => {
+        allStudents = [];
+        let total = 0, active = 0, totalPoints = 0;
+        const tbody = document.getElementById('teacher-students-table');
+        tbody.innerHTML = '';
+        
+        snap.forEach(doc => {
+            const s = doc.data();
+            s.id = doc.id;
+            allStudents.push(s);
+            total++;
+            totalPoints += s.points || 0;
+            if ((s.progress || 0) > 20) active++;
+            
+            const status = (s.progress || 0) > 70 ? ['نشط', 'bg-emerald-500/20 text-emerald-300'] :
+                          (s.progress || 0) > 30 ? ['متوسط', 'bg-amber-500/20 text-amber-300'] :
+                          ['يحتاج متابعة', 'bg-rose-500/20 text-rose-300'];
+            
+            tbody.innerHTML += `
+                <tr class="hover:bg-white/5 transition-all">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <img src="${s.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + s.name}" class="w-8 h-8 rounded-full bg-white/10">
+                            <div class="font-semibold text-xs">${s.name}</div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-400">${s.email}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-16 bg-white/10 rounded-full h-1.5">
+                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${s.progress || 0}%"></div>
+                            </div>
+                            <span class="text-[10px]">${s.progress || 0}%</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs">${s.points || 0}</td>
+                    <td class="px-4 py-3"><span class="${status[1]} px-2 py-0.5 rounded-full text-[10px]">${status[0]}</span></td>
+                </tr>
+            `;
+        });
+        
+        document.getElementById('t-stat-total').textContent = total;
+        document.getElementById('t-stat-active').textContent = active;
+        document.getElementById('t-stat-avg').textContent = total > 0 ? Math.round(totalPoints / total) + ' نقطة' : '0';
+    });
+
+    db.collection('exams').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allExams = [];
+        document.getElementById('t-stat-exams').textContent = snap.size;
+        const grid = document.getElementById('teacher-exams-grid');
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const e = doc.data();
+            e.id = doc.id;
+            allExams.push(e);
+            const isUpcoming = e.date && new Date(e.date) > new Date();
+            grid.innerHTML += `
+                <div class="glass-card rounded-xl p-4 border-l-4 ${isUpcoming ? 'border-amber-500' : 'border-emerald-500'}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-sm">${e.title}</span>
+                        <span class="text-[10px] ${isUpcoming ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} px-2 py-0.5 rounded-full">${isUpcoming ? 'قادم' : 'منتهي'}</span>
+                    </div>
+                    <div class="text-xs text-slate-400">${e.sectionName || 'عام'} | ${e.date || 'بدون تاريخ'}</div>
+                </div>
+            `;
+        });
+    });
+
+    db.collection('sections').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        const grid = document.getElementById('teacher-sections-grid');
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const s = doc.data();
+            const c = colorMap[s.color || 'blue'];
+            grid.innerHTML += `
+                <div class="glass-card rounded-xl p-4 text-center cursor-pointer hover:scale-[1.02] transition-all">
+                    <div class="text-3xl mb-2">${s.icon || '📚'}</div>
+                    <div class="font-semibold text-sm">${s.title}</div>
+                    <div class="text-[10px] text-slate-400 mt-1">${s.lessonCount || 0} درس</div>
+                </div>
+            `;
+        });
+        
+        const select = document.getElementById('exam-section-input');
+        select.innerHTML = '<option value="">اختر القسم</option>';
+        snap.forEach(doc => {
+            const s = doc.data();
+            select.innerHTML += `<option value="${doc.id}">${s.title}</option>`;
+        });
+    });
+}
+
+function switchTeacherTab(tab) {
+    document.querySelectorAll('.teacher-tab').forEach(t => {
+        t.classList.remove('bg-white/10', 'text-white', 'font-semibold');
+        t.classList.add('text-slate-400');
+    });
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('bg-white/10', 'text-white', 'font-semibold');
+    document.querySelector(`[data-tab="${tab}"]`).classList.remove('text-slate-400');
+    
+    document.querySelectorAll('.teacher-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('teacher-tab-' + tab).classList.remove('hidden');
+}
+
+function filterStudents() {
+    const query = document.getElementById('student-search').value.toLowerCase();
+    const rows = document.querySelectorAll('#teacher-students-table tr');
+    rows.forEach(row => {
+        const name = row.querySelector('.font-semibold')?.textContent.toLowerCase() || '';
+        row.style.display = name.includes(query) ? '' : 'none';
+    });
+}
+
+// ===== MODALS =====
+function showAddExamModal() {
+    document.getElementById('exam-modal').classList.remove('hidden');
+}
+
+function showAddSectionModal() {
+    document.getElementById('section-modal').classList.remove('hidden');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
+function addExam() {
+    const title = document.getElementById('exam-title-input').value;
+    const sectionId = document.getElementById('exam-section-input').value;
+    const date = document.getElementById('exam-date-input').value;
+    
+    if (!title) return alert('اكتب عنوان الامتحان');
+    
+    const sectionName = allSections.find(s => s.id === sectionId)?.title || 'عام';
+    
+    db.collection('exams').add({
+        title,
+        sectionId,
+        sectionName,
+        date,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.uid
+    }).then(() => {
+        closeModal('exam-modal');
+        document.getElementById('exam-title-input').value = '';
+        document.getElementById('exam-date-input').value = '';
+    });
+}
+
+function addSection() {
+    const title = document.getElementById('section-title-input').value;
+    const description = document.getElementById('section-desc-input').value;
+    const color = document.getElementById('section-color-input').value;
+    
+    if (!title) return alert('اكتب اسم القسم');
+    
+    db.collection('sections').add({
+        title,
+        description,
+        color,
+        icon: '📚',
+        lessonCount: 0,
+        progress: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        closeModal('section-modal');
+        document.getElementById('section-title-input').value = '';
+        document.getElementById('section-desc-input').value = '';
+    });
+}
+</script>
+
+</body>
+</html>
