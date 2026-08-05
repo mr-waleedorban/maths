@@ -45,6 +45,11 @@ const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 // Admin / Teacher Email
 const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
+
+let currentUser = null;
+let currentStudentData = { grade: 'sec2', points: 0, completedLessons: [], takenExams: {} };
+let currentExamTimer = null;
+let examQuestionsList = [];
 </script>
 
 <!-- ==================== LOADING SCREEN ==================== -->
@@ -372,28 +377,67 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
     </div>
 </div>
 
-<!-- ADD EXAM MODAL -->
-<div id="exam-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
-        <h2 id="exam-modal-title" class="text-xl font-bold mb-4">Create New Exam</h2>
-        <div class="space-y-3">
-            <input id="exam-title-input" type="text" placeholder="Exam Title" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
-            <select id="exam-grade-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
-                <option class="bg-slate-900" value="prep1">Prep 1</option>
-                <option class="bg-slate-900" value="prep2">Prep 2</option>
-                <option class="bg-slate-900" value="prep3">Prep 3</option>
-                <option class="bg-slate-900" value="sec1">1st Sec</option>
-                <option class="bg-slate-900" value="sec2" selected>2nd Sec</option>
-            </select>
-            <input id="exam-date-input" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+<!-- ADD EXAM MODAL (ADMIN) -->
+<div id="exam-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass bg-slate-900 rounded-3xl max-w-2xl w-full p-6 md:p-8 my-8">
+        <h2 id="exam-modal-title" class="text-xl font-bold mb-4">Create New Interactive Exam</h2>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <input id="exam-title-input" type="text" placeholder="Exam Title" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+                <select id="exam-grade-input" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+                    <option class="bg-slate-900" value="prep1">Prep 1</option>
+                    <option class="bg-slate-900" value="prep2">Prep 2</option>
+                    <option class="bg-slate-900" value="prep3">Prep 3</option>
+                    <option class="bg-slate-900" value="sec1">1st Sec</option>
+                    <option class="bg-slate-900" value="sec2" selected>2nd Sec</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <input id="exam-total-score" type="number" placeholder="Total Marks (e.g. 20)" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+                <input id="exam-date-input" type="date" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+            </div>
+
+            <hr class="border-white/10 my-4">
+
+            <!-- Question Builder Section -->
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Attach Question/Diagram Image (Optional)</label>
-                <input id="exam-image-input" type="file" accept="image/*" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs">
+                <h3 class="font-bold text-sm mb-2 text-emerald-400">Exam Questions Builder</h3>
+                <div id="questions-builder-list" class="space-y-4 max-h-[300px] overflow-y-auto pr-2"></div>
+                <button onclick="addQuestionField()" class="mt-3 w-full py-2 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 rounded-xl text-xs font-bold transition-all">+ Add Question</button>
             </div>
         </div>
         <div class="mt-6 flex gap-3">
             <button onclick="closeModal('exam-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
-            <button onclick="addExam()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">Save Exam</button>
+            <button onclick="addExam()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">Save & Publish Exam</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAKE EXAM MODAL (STUDENT) -->
+<div id="take-exam-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass bg-slate-900 rounded-3xl max-w-3xl w-full p-6 md:p-8 my-6 border border-amber-500/30">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div>
+                <h2 id="take-exam-title" class="text-xl font-bold text-amber-400">Exam Title</h2>
+                <p class="text-xs text-slate-400 mt-1">Total Marks: <span id="take-exam-max-score" class="font-bold text-white">0</span></p>
+            </div>
+            <!-- 20 Minute Countdown Timer -->
+            <div class="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-4 py-2 rounded-2xl flex items-center gap-2">
+                <span class="animate-pulse">⏱️</span>
+                <span id="exam-timer" class="font-mono font-bold text-lg">20:00</span>
+            </div>
+        </div>
+
+        <div id="take-exam-body" class="space-y-6 max-h-[60vh] overflow-y-auto pr-2"></div>
+
+        <div id="take-exam-result" class="hidden my-4 p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-center">
+            <h3 class="text-lg font-bold text-emerald-300 mb-1">🎉 Exam Completed!</h3>
+            <p class="text-sm">Your Final Result: <span id="exam-score-display" class="font-extrabold text-white text-xl">0 / 0</span></p>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-white/10 flex justify-end gap-3">
+            <button id="submit-exam-btn" onclick="submitExamAnswers()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl text-sm font-extrabold shadow-lg transition-all">تاكيد تسليم الامتحان</button>
+            <button id="close-exam-btn" onclick="closeModal('take-exam-modal')" class="hidden w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-all">إغلاق النافذة</button>
         </div>
     </div>
 </div>
@@ -445,693 +489,419 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
         </div>
         <div class="mt-6 flex gap-3">
             <button onclick="closeModal('pdf-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
-            <button onclick="addPdfSheet()" class="flex-1 py-3 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold transition-all">Publish PDF Sheet</button>
+            <button onclick="addPdfSheet()" class="flex-1 py-3 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold transition-all">Upload Sheet</button>
         </div>
     </div>
 </div>
 
-<!-- VIEW PDF VIEWER MODAL -->
-<div id="pdf-viewer-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col p-4">
-    <div class="flex justify-between items-center mb-3 max-w-7xl mx-auto w-full">
-        <h3 id="pdf-viewer-title" class="font-bold text-lg">PDF Viewer</h3>
-        <button onclick="closeModal('pdf-viewer-modal')" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20">✕</button>
-    </div>
-    <div class="flex-1 max-w-7xl mx-auto w-full bg-slate-950 rounded-2xl overflow-hidden border border-slate-800">
-        <iframe id="pdf-iframe" class="w-full h-full" src=""></iframe>
-    </div>
-</div>
-
-<!-- ASK QUESTION MODAL FORUM -->
+<!-- ASK QUESTION MODAL -->
 <div id="ask-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
-        <h2 class="text-xl font-bold mb-4">Ask Mr. Waleed a Question</h2>
+        <h2 class="text-xl font-bold mb-4">Post Question to Forum</h2>
         <div class="space-y-3">
-            <textarea id="ask-text-input" rows="4" placeholder="Write your problem details or question here..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-400/50"></textarea>
-            <div>
-                <label class="block text-xs text-slate-400 mb-1">Upload Photo of Problem (Optional)</label>
-                <input id="ask-image-input" type="file" accept="image/*" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs">
-            </div>
+            <textarea id="ask-text-input" rows="4" placeholder="Type your math problem or question details..." class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:border-indigo-400/50"></textarea>
         </div>
         <div class="mt-6 flex gap-3">
             <button onclick="closeModal('ask-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
-            <button onclick="submitQuestion()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all">Submit Question</button>
+            <button onclick="postQuestion()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all">Submit Question</button>
         </div>
     </div>
 </div>
 
-<!-- TEACHER ANSWER MODAL FORUM -->
-<div id="answer-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
-        <h2 class="text-xl font-bold mb-4">Approve & Answer Question</h2>
-        <input type="hidden" id="answer-question-id">
-        <div class="space-y-3">
-            <textarea id="answer-text-input" rows="4" placeholder="Type step-by-step model solution..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50"></textarea>
-            <div>
-                <label class="block text-xs text-slate-400 mb-1">Attach Solution Photo (Optional)</label>
-                <input id="answer-image-input" type="file" accept="image/*" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs">
-            </div>
-        </div>
-        <div class="mt-6 flex gap-3">
-            <button onclick="closeModal('answer-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
-            <button onclick="approveAndAnswerQuestion()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">Publish Solution</button>
-        </div>
-    </div>
-</div>
-
-<!-- ==================== JAVASCRIPT ==================== -->
+<!-- ==================== SCRIPT LOGIC ==================== -->
 <script>
-let currentUser = null;
-let currentRole = 'student';
-let selectedGrade = 'sec2';
-let allStudents = [];
-let allSections = [];
-let allExams = [];
-let allPdfs = [];
-let currentLessonId = null;
-
-const colorMap = {
-    blue: { bg: 'from-blue-600 to-indigo-700', bar: 'bg-blue-500', text: 'text-blue-300', border: 'border-blue-500/20', light: 'bg-blue-500/20' },
-    emerald: { bg: 'from-emerald-600 to-teal-700', bar: 'bg-emerald-500', text: 'text-emerald-300', border: 'border-emerald-500/20', light: 'bg-emerald-500/20' },
-    rose: { bg: 'from-rose-600 to-pink-700', bar: 'bg-rose-500', text: 'text-rose-300', border: 'border-rose-500/20', light: 'bg-rose-500/20' },
-    amber: { bg: 'from-amber-600 to-orange-700', bar: 'bg-amber-500', text: 'text-amber-300', border: 'border-amber-500/20', light: 'bg-amber-500/20' },
-    purple: { bg: 'from-purple-600 to-violet-700', bar: 'bg-purple-500', text: 'text-purple-300', border: 'border-purple-500/20', light: 'bg-purple-500/20' }
-};
-
-const gradeNames = {
-    prep1: 'Prep 1',
-    prep2: 'Prep 2',
-    prep3: 'Prep 3',
-    sec1: '1st Secondary',
-    sec2: '2nd Secondary'
-};
-
-// ===== AUTHENTICATION =====
-function signInWithGoogle() {
-    auth.signInWithPopup(googleProvider).catch(err => showError(err.message));
-}
-
-function signInWithEmail() {
-    const email = document.getElementById('email-input').value;
-    const password = document.getElementById('password-input').value;
-    if (!email || !password) return showError('Please fill in all fields');
-    auth.signInWithEmailAndPassword(email, password).catch(err => showError('Invalid email or password'));
-}
-
-function signUpWithEmail() {
-    const email = document.getElementById('email-input').value;
-    const password = document.getElementById('password-input').value;
-    if (!email || !password) return showError('Please fill in all fields');
-    if (password.length < 6) return showError('Password must be at least 6 characters');
-    auth.createUserWithEmailAndPassword(email, password).catch(err => showError(err.message));
-}
-
-function logout() {
-    showScreen('loading-screen');
-    auth.signOut().then(() => {
-        currentUser = null;
-        showScreen('login-screen');
-    });
-}
-
-function showError(msg) {
-    const el = document.getElementById('login-error');
-    el.textContent = msg;
-    el.classList.remove('hidden');
-    setTimeout(() => el.classList.add('hidden'), 4000);
-}
-
-// ===== AUTH STATE LISTENER =====
+// --- AUTHENTICATION ---
 auth.onAuthStateChanged(user => {
+    document.getElementById('loading-screen').classList.add('hidden');
     if (user) {
         currentUser = user;
-        const userEmail = user.email.toLowerCase();
-        const assignedRole = (userEmail === ADMIN_EMAIL.toLowerCase()) ? 'teacher' : 'student';
-
-        db.collection('users').doc(user.uid).get().then(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.role !== assignedRole) {
-                    db.collection('users').doc(user.uid).update({ role: assignedRole });
-                    data.role = assignedRole;
-                }
-                currentRole = data.role;
-                handleAuthSuccess(user, data);
-            } else {
-                const newUser = {
-                    name: user.displayName || user.email.split('@')[0],
-                    email: user.email,
-                    role: assignedRole,
-                    points: 0,
-                    progress: 0,
-                    lessonsCompleted: 0,
-                    examsTaken: 0,
-                    grade: 'sec2',
-                    photoURL: user.photoURL || '',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                db.collection('users').doc(user.uid).set(newUser).then(() => {
-                    currentRole = assignedRole;
-                    handleAuthSuccess(user, newUser);
-                });
-            }
-        }).catch(err => {
-            console.error("Error fetching user data:", err);
-            showError("Error connecting to user profile");
-        });
+        if (user.email === ADMIN_EMAIL) {
+            document.getElementById('teacher-dashboard').classList.remove('hidden');
+            document.getElementById('student-dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.add('hidden');
+            loadTeacherDashboard();
+        } else {
+            document.getElementById('student-dashboard').classList.remove('hidden');
+            document.getElementById('teacher-dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('student-name').innerText = user.displayName || user.email.split('@')[0];
+            if(user.photoURL) document.getElementById('student-avatar').src = user.photoURL;
+            loadStudentData();
+        }
     } else {
-        showScreen('login-screen');
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('student-dashboard').classList.add('hidden');
+        document.getElementById('teacher-dashboard').classList.add('hidden');
     }
 });
 
-function handleAuthSuccess(user, data) {
-    document.getElementById('login-error').classList.add('hidden');
-    if (currentRole === 'teacher') {
-        showScreen('teacher-dashboard');
-        loadTeacherData();
-    } else {
-        showScreen('student-dashboard');
-        if (data.grade) selectedGrade = data.grade;
-        document.getElementById('student-grade-select').value = selectedGrade;
-        loadStudentData(user.uid);
-    }
+function signInWithGoogle() {
+    auth.signInWithPopup(googleProvider).catch(err => showLoginError(err.message));
 }
 
-function showScreen(id) {
-    ['loading-screen', 'login-screen', 'student-dashboard', 'teacher-dashboard'].forEach(s => {
-        document.getElementById(s).classList.add('hidden');
+function signInWithEmail() {
+    const e = document.getElementById('email-input').value;
+    const p = document.getElementById('password-input').value;
+    if(!e || !p) return showLoginError("Please enter email and password");
+    auth.signInWithEmailAndPassword(e, p).catch(err => showLoginError(err.message));
+}
+
+function signUpWithEmail() {
+    const e = document.getElementById('email-input').value;
+    const p = document.getElementById('password-input').value;
+    if(!e || !p) return showLoginError("Please enter email and password");
+    auth.createUserWithEmailAndPassword(e, p).catch(err => showLoginError(err.message));
+}
+
+function logout() { auth.signOut(); }
+
+function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    el.innerText = msg;
+    el.classList.remove('hidden');
+}
+
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// --- STUDENT DATA & TABS ---
+function loadStudentData() {
+    db.collection('students').doc(currentUser.uid).get().then(doc => {
+        if(doc.exists) {
+            currentStudentData = doc.data();
+            document.getElementById('student-grade-select').value = currentStudentData.grade || 'sec2';
+            document.getElementById('student-points').innerText = currentStudentData.points || 0;
+        } else {
+            db.collection('students').doc(currentUser.uid).set(currentStudentData);
+        }
+        renderStudentView();
     });
-    document.getElementById(id).classList.remove('hidden');
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+function changeGrade(g) {
+    currentStudentData.grade = g;
+    db.collection('students').doc(currentUser.uid).update({ grade: g });
+    renderStudentView();
 }
 
-// ===== STUDENT LOGIC =====
-function changeGrade(grade) {
-    selectedGrade = grade;
-    document.getElementById('current-grade-label').textContent = gradeNames[grade];
-    if (currentUser) {
-        db.collection('users').doc(currentUser.uid).update({ grade: grade });
-        loadStudentData(currentUser.uid);
-    }
+function renderStudentView() {
+    const g = currentStudentData.grade || 'sec2';
+    document.getElementById('current-grade-label').innerText = g.toUpperCase();
+    
+    // Load Sections
+    db.collection('sections').where('grade', '==', g).get().then(snap => {
+        const grid = document.getElementById('sections-grid');
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            grid.innerHTML += `
+                <div class="glass-card rounded-2xl p-5 border-t-4 border-${data.color || 'blue'}-500">
+                    <h4 class="font-bold text-base mb-1">${data.title}</h4>
+                    <p class="text-xs text-slate-400 mb-4">${data.desc || ''}</p>
+                    <button onclick="openLesson('${data.title}', '${data.videoUrl}')" class="w-full py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all">Watch Lesson</button>
+                </div>`;
+        });
+    });
+
+    // Load Exams
+    db.collection('exams').where('grade', '==', g).get().then(snap => {
+        const list = document.getElementById('exams-list');
+        list.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            const examId = doc.id;
+            const taken = currentStudentData.takenExams && currentStudentData.takenExams[examId];
+            list.innerHTML += `
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm">${data.title}</h4>
+                        <p class="text-[10px] text-slate-400">Total Marks: ${data.totalScore || 20} pts | Date: ${data.date || 'Active'}</p>
+                    </div>
+                    ${taken ? 
+                        `<span class="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-3 py-1.5 rounded-xl">Completed (${taken.score}/${data.totalScore || 20})</span>` :
+                        `<button onclick="startExam('${examId}')" class="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md">Take Exam (20m)</button>`
+                    }
+                </div>`;
+        });
+    });
+
+    // Load PDFs
+    db.collection('pdfs').where('grade', '==', g).get().then(snap => {
+        const grid = document.getElementById('student-pdf-grid');
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            grid.innerHTML += `
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm">${data.title}</h4>
+                        <p class="text-[10px] text-slate-400">PDF Document</p>
+                    </div>
+                    <a href="${data.url}" target="_blank" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Download</a>
+                </div>`;
+        });
+    });
 }
 
 function switchStudentTab(tab) {
-    document.querySelectorAll('.student-nav-btn').forEach(btn => {
-        btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border', 'border-amber-500/30');
-        btn.classList.add('bg-white/5', 'text-slate-300');
-    });
-    const activeBtn = document.querySelector(`.student-nav-btn[data-tab="${tab}"]`);
-    if(activeBtn) {
-        activeBtn.classList.remove('bg-white/5', 'text-slate-300');
-        activeBtn.classList.add('bg-amber-500/20', 'text-amber-300', 'border', 'border-amber-500/30');
-    }
-
-    document.querySelectorAll('.st-tab-content').forEach(c => c.classList.add('hidden'));
+    document.querySelectorAll('.st-tab-content').forEach(el => el.classList.add('hidden'));
     document.getElementById(`st-tab-${tab}`).classList.remove('hidden');
 }
 
-function loadStudentData(uid) {
-    document.getElementById('current-grade-label').textContent = gradeNames[selectedGrade];
+// --- EXAM ENGINE (STUDENT) ---
+let activeExamData = null;
+let activeExamId = null;
 
-    db.collection('users').doc(uid).onSnapshot(doc => {
-        if (!doc.exists) return;
-        const data = doc.data();
-        document.getElementById('student-name').textContent = data.name || 'Student';
-        document.getElementById('student-points').textContent = data.points || 0;
-        document.getElementById('stat-lessons').textContent = data.lessonsCompleted || 0;
-        document.getElementById('stat-exams').textContent = data.examsTaken || 0;
-        document.getElementById('stat-progress').textContent = (data.progress || 0) + '%';
-        if (data.photoURL) document.getElementById('student-avatar').src = data.photoURL;
-    });
+function startExam(examId) {
+    db.collection('exams').doc(examId).get().then(doc => {
+        if(!doc.exists) return;
+        activeExamId = doc.id;
+        activeExamData = doc.data();
 
-    // Load Grade Modules
-    db.collection('sections').where('grade', '==', selectedGrade).onSnapshot(snap => {
-        const grid = document.getElementById('sections-grid');
-        grid.innerHTML = '';
-        if (snap.empty) {
-            grid.innerHTML = `<p class="text-xs text-slate-500 col-span-3">No modules available for ${gradeNames[selectedGrade]} yet.</p>`;
-            return;
-        }
-        snap.forEach(doc => {
-            const s = doc.data();
-            const c = colorMap[s.color || 'blue'];
-            grid.innerHTML += `
-                <div class="glass-card rounded-2xl overflow-hidden group cursor-pointer" onclick="openLesson('${doc.id}', '${s.title}', '${s.videoUrl || ''}', '${s.description || ''}')">
-                    <div class="h-36 bg-gradient-to-br ${c.bg} flex items-center justify-center relative overflow-hidden">
-                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">📐</span>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex items-center justify-between mb-1">
-                            <h3 class="font-bold text-sm">${s.title}</h3>
-                            <span class="text-[10px] ${c.light} ${c.text} px-2 py-0.5 rounded-full">Module</span>
-                        </div>
-                        <p class="text-xs text-slate-400 mb-3">${s.description || 'Interactive Math Lesson'}</p>
+        document.getElementById('take-exam-title').innerText = activeExamData.title;
+        document.getElementById('take-exam-max-score').innerText = activeExamData.totalScore || 20;
+
+        const body = document.getElementById('take-exam-body');
+        body.innerHTML = '';
+
+        const qList = activeExamData.questions || [];
+        qList.forEach((q, idx) => {
+            body.innerHTML += `
+                <div class="glass-card p-4 rounded-2xl space-y-3">
+                    <p class="font-bold text-sm text-slate-200">Q${idx+1}: ${q.text}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                        ${q.options.map((opt, oIdx) => `
+                            <label class="flex items-center gap-2 p-3 bg-white/5 rounded-xl hover:bg-white/10 cursor-pointer border border-white/5">
+                                <input type="radio" name="q_${idx}" value="${oIdx}" class="accent-amber-400">
+                                <span>${opt}</span>
+                            </label>
+                        `).join('')}
                     </div>
                 </div>
             `;
         });
-    });
 
-    // Load Exams
-    db.collection('exams').where('grade', '==', selectedGrade).onSnapshot(snap => {
-        const list = document.getElementById('exams-list');
-        list.innerHTML = '';
-        if (snap.empty) {
-            list.innerHTML = `<p class="text-xs text-slate-500">No active exams right now.</p>`;
-            return;
+        document.getElementById('take-exam-result').classList.add('hidden');
+        document.getElementById('submit-exam-btn').classList.remove('hidden');
+        document.getElementById('close-exam-btn').classList.add('hidden');
+
+        document.getElementById('take-exam-modal').classList.remove('hidden');
+        startTimer(20 * 60); // 20 minutes countdown
+    });
+}
+
+function startTimer(seconds) {
+    clearInterval(currentExamTimer);
+    let rem = seconds;
+    const timerDisplay = document.getElementById('exam-timer');
+    
+    currentExamTimer = setInterval(() => {
+        const m = Math.floor(rem / 60);
+        const s = rem % 60;
+        timerDisplay.innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+        
+        if(rem <= 0) {
+            clearInterval(currentExamTimer);
+            alert("Time is up! Auto-submitting your exam.");
+            submitExamAnswers();
         }
-        snap.forEach(doc => {
-            const e = doc.data();
-            const isUpcoming = e.date && new Date(e.date) > new Date();
-            list.innerHTML += `
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 ${isUpcoming ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} rounded-xl flex items-center justify-center text-lg font-bold">${isUpcoming ? '📝' : '✅'}</div>
-                        <div>
-                            <div class="font-semibold text-sm">${e.title}</div>
-                            <div class="text-[10px] text-slate-400">${gradeNames[e.grade || selectedGrade]} ${e.date ? '| Due: ' + e.date : ''}</div>
-                        </div>
-                    </div>
-                    ${e.imageUrl ? `<img src="${e.imageUrl}" class="w-12 h-12 object-cover rounded-lg border border-white/10">` : ''}
-                </div>
-            `;
-        });
-    });
+        rem--;
+    }, 1000);
+}
 
-    // Load PDFs
-    db.collection('pdfs').where('grade', '==', selectedGrade).onSnapshot(snap => {
-        const grid = document.getElementById('student-pdf-grid');
-        grid.innerHTML = '';
-        if(snap.empty) {
-            grid.innerHTML = `<p class="text-xs text-slate-500 col-span-3">No PDFs or sheets published for this grade yet.</p>`;
-            return;
+function submitExamAnswers() {
+    clearInterval(currentExamTimer);
+    const qList = activeExamData.questions || [];
+    let obtainedScore = 0;
+    const marksPerQ = (activeExamData.totalScore || 20) / (qList.length || 1);
+
+    qList.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
+        if(selected && parseInt(selected.value) === parseInt(q.correct)) {
+            obtainedScore += marksPerQ;
         }
-        snap.forEach(doc => {
-            const p = doc.data();
-            grid.innerHTML += `
-                <div class="glass-card rounded-2xl p-5 border border-white/10 flex flex-col justify-between">
-                    <div>
-                        <div class="text-3xl mb-2">📄</div>
-                        <h4 class="font-bold text-sm mb-1">${p.title}</h4>
-                        <p class="text-[10px] text-slate-400 mb-4">${gradeNames[p.grade]}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="viewPdf('${p.url}', '${p.title}')" class="flex-1 py-2 bg-indigo-600/40 hover:bg-indigo-600 rounded-xl text-xs font-semibold">Preview</button>
-                        <a href="${p.url}" target="_blank" download class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold flex items-center justify-center">⬇️</a>
-                    </div>
-                </div>
-            `;
-        });
     });
 
-    // Load Approved Forum Questions
-    db.collection('forum').where('status', '==', 'approved').onSnapshot(snap => {
-        const list = document.getElementById('forum-questions-list');
-        list.innerHTML = '';
-        if(snap.empty) {
-            list.innerHTML = `<p class="text-xs text-slate-500">No answered questions yet. Be the first to ask!</p>`;
-            return;
-        }
-        snap.forEach(doc => {
-            const q = doc.data();
-            list.innerHTML += `
-                <div class="glass-card rounded-2xl p-5 space-y-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 bg-indigo-500/20 text-indigo-300 rounded-full flex items-center justify-center text-xs font-bold">Q</div>
-                        <span class="text-xs font-semibold text-slate-300">${q.studentName}</span>
-                    </div>
-                    <p class="text-sm font-medium text-white">${q.questionText}</p>
-                    ${q.questionImage ? `<img src="${q.questionImage}" class="max-h-60 rounded-xl border border-white/10 my-2">` : ''}
-                    
-                    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mt-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-xs font-bold text-emerald-400">👨‍🏫 Mr. Waleed's Solution:</span>
-                        </div>
-                        <p class="text-xs text-emerald-100 whitespace-pre-line">${q.answerText || 'Solved'}</p>
-                        ${q.answerImage ? `<img src="${q.answerImage}" class="max-h-60 rounded-xl border border-emerald-500/30 mt-2">` : ''}
-                    </div>
-                </div>
-            `;
-        });
+    obtainedScore = Math.round(obtainedScore);
+
+    // Save to Firebase
+    if(!currentStudentData.takenExams) currentStudentData.takenExams = {};
+    currentStudentData.takenExams[activeExamId] = { score: obtainedScore, date: new Date().toLocaleDateString() };
+    currentStudentData.points = (currentStudentData.points || 0) + obtainedScore;
+
+    db.collection('students').doc(currentUser.uid).update({
+        takenExams: currentStudentData.takenExams,
+        points: currentStudentData.points
     });
 
-    // Rank Calculation
-    db.collection('users').where('role', '==', 'student').orderBy('points', 'desc').get().then(snap => {
-        let rank = 1;
-        snap.forEach(doc => {
-            if (doc.id === uid) {
-                document.getElementById('stat-rank').textContent = '#' + rank;
-                return;
-            }
-            rank++;
-        });
-    });
+    document.getElementById('exam-score-display').innerText = `${obtainedScore} / ${activeExamData.totalScore || 20}`;
+    document.getElementById('take-exam-result').classList.remove('hidden');
+    document.getElementById('submit-exam-btn').classList.add('hidden');
+    document.getElementById('close-exam-btn').classList.remove('hidden');
+    
+    renderStudentView();
 }
 
-function viewPdf(url, title) {
-    document.getElementById('pdf-viewer-title').textContent = title;
-    let embedUrl = url;
-    if(url.includes('drive.google.com')) {
-        embedUrl = url.replace('/view', '/preview');
-    }
-    document.getElementById('pdf-iframe').src = embedUrl;
-    document.getElementById('pdf-viewer-modal').classList.remove('hidden');
-}
-
-function openLesson(sectionId, title, videoUrl, desc) {
-    currentLessonId = sectionId;
-    document.getElementById('lesson-modal-title').textContent = title;
-    document.getElementById('lesson-modal-body').innerHTML = `
-        ${videoUrl ? `<div class="aspect-video w-full rounded-2xl overflow-hidden mb-4"><iframe src="${videoUrl}" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>` : ''}
-        <div class="bg-white/5 rounded-xl p-5 mb-4">
-            <h4 class="font-bold text-amber-300 mb-2">📝 Overview</h4>
-            <p class="text-xs text-slate-300">${desc || 'Study the main concepts and work through the model examples.'}</p>
-        </div>
-    `;
-    document.getElementById('lesson-modal').classList.remove('hidden');
-}
-
-function completeLesson() {
-    if (!currentUser || !currentLessonId) return;
-    db.collection('users').doc(currentUser.uid).update({
-        lessonsCompleted: firebase.firestore.FieldValue.increment(1),
-        points: firebase.firestore.FieldValue.increment(50),
-        progress: firebase.firestore.FieldValue.increment(5)
-    }).then(() => {
-        alert('🎉 Great job! Lesson completed (+50 points)');
-        closeModal('lesson-modal');
-    });
-}
-
-// ===== FORUM QUESTION SUBMISSION =====
-function showAskQuestionModal() {
-    document.getElementById('ask-modal').classList.remove('hidden');
-}
-
-function submitQuestion() {
-    const text = document.getElementById('ask-text-input').value;
-    const fileInput = document.getElementById('ask-image-input');
-    if(!text) return alert('Please enter your question details.');
-
-    const saveQuestion = (imgBase64 = '') => {
-        db.collection('forum').add({
-            studentId: currentUser.uid,
-            studentName: currentUser.displayName || currentUser.email.split('@')[0],
-            grade: selectedGrade,
-            questionText: text,
-            questionImage: imgBase64,
-            status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            alert('Your question has been sent to Mr. Waleed for review!');
-            document.getElementById('ask-text-input').value = '';
-            fileInput.value = '';
-            closeModal('ask-modal');
-        });
-    };
-
-    if(fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) { saveQuestion(e.target.result); };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        saveQuestion();
-    }
-}
-
-// ===== CALCULATOR LOGIC =====
-let calcExpr = '';
-function calcInput(val) {
-    calcExpr += val;
-    document.getElementById('calc-screen-expr').textContent = calcExpr;
-}
-function calcOp(op) {
-    if(op === 'sqrt') calcExpr += 'Math.sqrt(';
-    else if(op === 'pow') calcExpr += '**';
-    else calcExpr += `Math.${op}(`;
-    document.getElementById('calc-screen-expr').textContent = calcExpr;
-}
-function calcClear() {
-    calcExpr = '';
-    document.getElementById('calc-screen-expr').textContent = '';
-    document.getElementById('calc-screen-val').textContent = '0';
-}
-function calcEval() {
-    try {
-        let parsed = calcExpr.replace(/π/g, 'Math.PI');
-        let res = eval(parsed);
-        document.getElementById('calc-screen-val').textContent = Number.isInteger(res) ? res : res.toFixed(4);
-    } catch(e) {
-        document.getElementById('calc-screen-val').textContent = 'Error';
-    }
-}
-
-// ===== TEACHER / ADMIN LOGIC =====
+// --- TEACHER / ADMIN LOGIC ---
 function switchTeacherTab(tab) {
-    document.querySelectorAll('.teacher-tab').forEach(b => {
-        b.classList.remove('bg-white/10', 'text-white');
-        b.classList.add('text-slate-400');
-    });
-    const active = document.querySelector(`.teacher-tab[data-tab="${tab}"]`);
-    if(active) {
-        active.classList.add('bg-white/10', 'text-white');
-        active.classList.remove('text-slate-400');
-    }
-
-    document.querySelectorAll('.teacher-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.teacher-panel').forEach(el => el.classList.add('hidden'));
     document.getElementById(`teacher-tab-${tab}`).classList.remove('hidden');
 }
 
-function loadTeacherData() {
-    // Load Students List
-    db.collection('users').where('role', '==', 'student').onSnapshot(snap => {
-        allStudents = [];
-        let total = 0, active = 0, sumProgress = 0;
+function loadTeacherDashboard() {
+    // Load Exams Admin View
+    db.collection('exams').get().then(snap => {
+        const grid = document.getElementById('teacher-exams-grid');
+        document.getElementById('t-stat-exams').innerText = snap.size;
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            grid.innerHTML += `
+                <div class="glass-card rounded-2xl p-4 flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-sm">${data.title}</h4>
+                        <p class="text-xs text-slate-400">Grade: ${data.grade} | Total: ${data.totalScore || 20} Marks</p>
+                    </div>
+                    <button onclick="deleteDoc('exams', '${doc.id}')" class="text-rose-400 hover:text-rose-300 text-xs font-bold">Delete</button>
+                </div>`;
+        });
+    });
+
+    // Load Students List Admin View
+    db.collection('students').get().then(snap => {
+        document.getElementById('t-stat-total').innerText = snap.size;
+        document.getElementById('t-stat-active').innerText = snap.size;
         const tbody = document.getElementById('teacher-students-table');
         tbody.innerHTML = '';
-
         snap.forEach(doc => {
-            const s = doc.data();
-            s.id = doc.id;
-            allStudents.push(s);
-            total++;
-            sumProgress += (s.progress || 0);
-            if ((s.progress || 0) > 20) active++;
-
-            const status = (s.progress || 0) > 70 ? ['Active', 'bg-emerald-500/20 text-emerald-300'] :
-                           (s.progress || 0) > 30 ? ['Medium', 'bg-amber-500/20 text-amber-300'] :
-                           ['Needs Followup', 'bg-rose-500/20 text-rose-300'];
-
+            const st = doc.data();
             tbody.innerHTML += `
-                <tr class="hover:bg-white/5 transition-all">
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <img src="${s.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + s.name}" class="w-8 h-8 rounded-full bg-white/10">
-                            <div class="font-semibold text-xs">${s.name}</div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 text-xs text-slate-400">${s.email}</td>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-16 bg-white/10 rounded-full h-1.5">
-                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${s.progress || 0}%"></div>
-                            </div>
-                            <span class="text-xs font-mono">${s.progress || 0}%</span>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 text-xs font-bold text-amber-400">${s.points || 0}</td>
-                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full ${status[1]}">${status[0]}</span></td>
-                </tr>
-            `;
-        });
-
-        document.getElementById('t-stat-total').textContent = total;
-        document.getElementById('t-stat-active').textContent = active;
-        document.getElementById('t-stat-avg').textContent = total > 0 ? Math.round(sumProgress / total) + '%' : '0%';
-    });
-
-    // Load Modules
-    db.collection('sections').onSnapshot(snap => {
-        const grid = document.getElementById('teacher-sections-grid');
-        grid.innerHTML = '';
-        snap.forEach(doc => {
-            const s = doc.data();
-            grid.innerHTML += `
-                <div class="glass-card rounded-2xl p-4 border border-white/10">
-                    <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-bold text-sm">${s.title}</h4>
-                        <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">${gradeNames[s.grade || 'sec2']}</span>
-                    </div>
-                    <p class="text-xs text-slate-400 mb-3">${s.description || ''}</p>
-                    <button onclick="deleteDoc('sections', '${doc.id}')" class="text-xs text-rose-400 hover:underline">Delete Module</button>
-                </div>
-            `;
-        });
-    });
-
-    // Load Exams
-    db.collection('exams').onSnapshot(snap => {
-        document.getElementById('t-stat-exams').textContent = snap.size;
-        const grid = document.getElementById('teacher-exams-grid');
-        grid.innerHTML = '';
-        snap.forEach(doc => {
-            const e = doc.data();
-            grid.innerHTML += `
-                <div class="glass-card rounded-2xl p-4 flex justify-between items-center border border-white/10">
-                    <div>
-                        <h4 class="font-bold text-sm">${e.title}</h4>
-                        <p class="text-xs text-slate-400">${gradeNames[e.grade || 'sec2']} | Due: ${e.date || 'N/A'}</p>
-                    </div>
-                    <button onclick="deleteDoc('exams', '${doc.id}')" class="text-xs text-rose-400 hover:underline">Delete</button>
-                </div>
-            `;
-        });
-    });
-
-    // Load PDFs
-    db.collection('pdfs').onSnapshot(snap => {
-        const grid = document.getElementById('teacher-pdf-grid');
-        grid.innerHTML = '';
-        snap.forEach(doc => {
-            const p = doc.data();
-            grid.innerHTML += `
-                <div class="glass-card rounded-2xl p-4 flex justify-between items-center border border-white/10">
-                    <div>
-                        <h4 class="font-bold text-sm">${p.title}</h4>
-                        <p class="text-xs text-slate-400">${gradeNames[p.grade]}</p>
-                    </div>
-                    <button onclick="deleteDoc('pdfs', '${doc.id}')" class="text-xs text-rose-400 hover:underline">Delete</button>
-                </div>
-            `;
-        });
-    });
-
-    // Load Pending Questions
-    db.collection('forum').where('status', '==', 'pending').onSnapshot(snap => {
-        const list = document.getElementById('teacher-pending-questions');
-        list.innerHTML = '';
-        if(snap.empty) {
-            list.innerHTML = `<p class="text-xs text-slate-500">No pending student questions.</p>`;
-            return;
-        }
-        snap.forEach(doc => {
-            const q = doc.data();
-            list.innerHTML += `
-                <div class="glass-card rounded-2xl p-5 border border-amber-500/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold text-amber-300">${q.studentName} (${gradeNames[q.grade]})</span>
-                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">Pending Approval</span>
-                    </div>
-                    <p class="text-sm mb-3">${q.questionText}</p>
-                    ${q.questionImage ? `<img src="${q.questionImage}" class="max-h-48 rounded-xl mb-3 border border-white/10">` : ''}
-                    <div class="flex gap-2">
-                        <button onclick="showAnswerModal('${doc.id}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold">Approve & Answer</button>
-                        <button onclick="deleteDoc('forum', '${doc.id}')" class="px-4 py-2 bg-rose-600/30 hover:bg-rose-600 text-rose-200 rounded-xl text-xs font-semibold">Reject</button>
-                    </div>
-                </div>
-            `;
+                <tr class="hover:bg-white/5">
+                    <td class="px-4 py-3 font-semibold">${st.name || 'Student'}</td>
+                    <td class="px-4 py-3 text-slate-400 text-xs">${doc.id.substring(0,8)}...</td>
+                    <td class="px-4 py-3 text-amber-400 font-bold">${st.grade || 'sec2'}</td>
+                    <td class="px-4 py-3 font-bold">${st.points || 0}</td>
+                    <td class="px-4 py-3 text-emerald-400 text-xs">Active</td>
+                </tr>`;
         });
     });
 }
 
-function filterStudents() {
-    const q = document.getElementById('student-search').value.toLowerCase();
-    document.querySelectorAll('#teacher-students-table tr').forEach(row => {
-        const name = row.cells[0].textContent.toLowerCase();
-        const email = row.cells[1].textContent.toLowerCase();
-        row.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
-    });
+// --- ADD EXAM BUILDER (TEACHER) ---
+function showAddExamModal() {
+    examQuestionsList = [];
+    document.getElementById('questions-builder-list').innerHTML = '';
+    addQuestionField();
+    document.getElementById('exam-modal').classList.remove('hidden');
 }
 
-function showAddExamModal() { document.getElementById('exam-modal').classList.remove('hidden'); }
-function showAddSectionModal() { document.getElementById('section-modal').classList.remove('hidden'); }
-function showAddPdfModal() { document.getElementById('pdf-modal').classList.remove('hidden'); }
+function addQuestionField() {
+    const qIndex = examQuestionsList.length;
+    examQuestionsList.push(qIndex);
+    const container = document.getElementById('questions-builder-list');
+    container.innerHTML += `
+        <div class="glass p-3 rounded-xl space-y-2 border border-white/10 text-xs">
+            <input type="text" id="q_title_${qIndex}" placeholder="Question ${qIndex+1} Text" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="q_${qIndex}_opt_0" placeholder="Option 1" class="bg-white/5 border border-white/10 rounded-lg p-2">
+                <input type="text" id="q_${qIndex}_opt_1" placeholder="Option 2" class="bg-white/5 border border-white/10 rounded-lg p-2">
+                <input type="text" id="q_${qIndex}_opt_2" placeholder="Option 3" class="bg-white/5 border border-white/10 rounded-lg p-2">
+                <input type="text" id="q_${qIndex}_opt_3" placeholder="Option 4" class="bg-white/5 border border-white/10 rounded-lg p-2">
+            </div>
+            <select id="q_${qIndex}_correct" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-emerald-400 font-bold">
+                <option value="0">Correct Model Answer: Option 1</option>
+                <option value="1">Correct Model Answer: Option 2</option>
+                <option value="2">Correct Model Answer: Option 3</option>
+                <option value="3">Correct Model Answer: Option 4</option>
+            </select>
+        </div>
+    `;
+}
 
 function addExam() {
     const title = document.getElementById('exam-title-input').value;
     const grade = document.getElementById('exam-grade-input').value;
+    const totalScore = parseInt(document.getElementById('exam-total-score').value) || 20;
     const date = document.getElementById('exam-date-input').value;
-    const fileInput = document.getElementById('exam-image-input');
-    if(!title) return alert('Please fill in exam title');
 
-    const saveExam = (imgBase64 = '') => {
-        db.collection('exams').add({
-            title, grade, date, imageUrl: imgBase64, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            closeModal('exam-modal');
-        });
-    };
+    const questions = [];
+    examQuestionsList.forEach((qIdx) => {
+        const qText = document.getElementById(`q_title_${qIdx}`)?.value;
+        const o0 = document.getElementById(`q_${qIdx}_opt_0`)?.value;
+        const o1 = document.getElementById(`q_${qIdx}_opt_1`)?.value;
+        const o2 = document.getElementById(`q_${qIdx}_opt_2`)?.value;
+        const o3 = document.getElementById(`q_${qIdx}_opt_3`)?.value;
+        const correct = document.getElementById(`q_${qIdx}_correct`)?.value;
 
-    if(fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) { saveExam(e.target.result); };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        saveExam();
-    }
+        if(qText) {
+            questions.push({
+                text: qText,
+                options: [o0||'A', o1||'B', o2||'C', o3||'D'],
+                correct: parseInt(correct) || 0
+            });
+        }
+    });
+
+    if(!title) return alert("Please enter exam title");
+
+    db.collection('exams').add({
+        title, grade, totalScore, date, questions
+    }).then(() => {
+        closeModal('exam-modal');
+        loadTeacherDashboard();
+    });
 }
 
+function showAddSectionModal() { document.getElementById('section-modal').classList.remove('hidden'); }
 function addSection() {
     const title = document.getElementById('section-title-input').value;
     const desc = document.getElementById('section-desc-input').value;
     const videoUrl = document.getElementById('section-video-input').value;
     const grade = document.getElementById('section-grade-input').value;
     const color = document.getElementById('section-color-input').value;
-    if(!title) return alert('Please fill in title');
 
-    db.collection('sections').add({
-        title, description: desc, videoUrl, grade, color, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => closeModal('section-modal'));
+    db.collection('sections').add({ title, desc, videoUrl, grade, color }).then(() => {
+        closeModal('section-modal');
+        loadTeacherDashboard();
+    });
 }
 
+function showAddPdfModal() { document.getElementById('pdf-modal').classList.remove('hidden'); }
 function addPdfSheet() {
     const title = document.getElementById('pdf-title-input').value;
     const url = document.getElementById('pdf-url-input').value;
     const grade = document.getElementById('pdf-grade-input').value;
-    if(!title || !url) return alert('Please enter title and URL');
 
-    db.collection('pdfs').add({
-        title, url, grade, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => closeModal('pdf-modal'));
+    db.collection('pdfs').add({ title, url, grade }).then(() => {
+        closeModal('pdf-modal');
+        loadTeacherDashboard();
+    });
 }
 
-function showAnswerModal(id) {
-    document.getElementById('answer-question-id').value = id;
-    document.getElementById('answer-modal').classList.remove('hidden');
-}
-
-function approveAndAnswerQuestion() {
-    const id = document.getElementById('answer-question-id').value;
-    const answerText = document.getElementById('answer-text-input').value;
-    const fileInput = document.getElementById('answer-image-input');
-
-    const updateQuestion = (imgBase64 = '') => {
-        db.collection('forum').doc(id).update({
-            answerText,
-            answerImage: imgBase64,
-            status: 'approved'
-        }).then(() => {
-            closeModal('answer-modal');
-            document.getElementById('answer-text-input').value = '';
-            fileInput.value = '';
-        });
-    };
-
-    if(fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) { updateQuestion(e.target.result); };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        updateQuestion();
+function deleteDoc(col, id) {
+    if(confirm("Are you sure you want to delete this?")) {
+        db.collection(col).doc(id).delete().then(() => loadTeacherDashboard());
     }
 }
 
-function deleteDoc(collection, id) {
-    if(confirm('Are you sure you want to delete this item?')) {
-        db.collection(collection).doc(id).delete();
+// --- CASIO CALCULATOR ---
+let calcExpr = "";
+function calcInput(v) { calcExpr += v; document.getElementById('calc-screen-val').innerText = calcExpr; }
+function calcClear() { calcExpr = ""; document.getElementById('calc-screen-val').innerText = "0"; }
+function calcEval() {
+    try {
+        let res = eval(calcExpr.replace(/π/g, 'Math.PI'));
+        document.getElementById('calc-screen-val').innerText = res;
+        calcExpr = res.toString();
+    } catch {
+        document.getElementById('calc-screen-val').innerText = "Error";
     }
+}
+function calcOp(op) {
+    if(op === 'sin') calcExpr += "Math.sin(";
+    if(op === 'cos') calcExpr += "Math.cos(";
+    if(op === 'tan') calcExpr += "Math.tan(";
+    if(op === 'sqrt') calcExpr += "Math.sqrt(";
+    document.getElementById('calc-screen-val').innerText = calcExpr;
 }
 </script>
 </body>
