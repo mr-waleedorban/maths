@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MathMaster Pro - منصة المستر</title>
+    <title>MathMaster Pro - Mr. Waleed Orban Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Cairo', sans-serif; }
+        * { font-family: 'Poppins', 'Cairo', sans-serif; }
         .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
         .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
         .glass-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
@@ -43,14 +43,14 @@ const db = firebase.firestore();
 
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-// البريد الإلكتروني الخاص بالأدمن / المعلم
+// Admin / Teacher Email
 const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
 </script>
 
 <!-- ==================== LOADING SCREEN ==================== -->
 <div id="loading-screen" class="flex flex-col items-center justify-center min-h-screen">
     <div class="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-4"></div>
-    <p class="text-slate-400 text-sm">جاري التحقق من الحساب...</p>
+    <p class="text-slate-400 text-sm">Verifying Account & Access...</p>
 </div>
 
 <!-- ==================== LOGIN SCREEN ==================== -->
@@ -59,7 +59,7 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
         <div class="text-center mb-8">
             <div class="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-4xl font-bold text-slate-900 mb-4 shadow-lg shadow-amber-500/20">π</div>
             <h1 class="text-3xl font-extrabold bg-gradient-to-r from-amber-300 to-orange-300 bg-clip-text text-transparent">MathMaster Pro</h1>
-            <p class="text-slate-400 mt-2 text-sm">منصة المستر للرياضيات - تعلم بذكاء</p>
+            <p class="text-slate-400 mt-2 text-sm">Mr. Waleed Orban - High School & Prep Math Platform</p>
         </div>
         
         <div id="login-error" class="hidden bg-rose-500/20 border border-rose-500/30 text-rose-200 px-4 py-3 rounded-xl text-sm mb-4 text-center"></div>
@@ -72,26 +72,26 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                تسجيل الدخول بحساب Google
+                Sign in with Google
             </button>
             
             <div class="relative my-5">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                <div class="relative flex justify-center text-xs"><span class="bg-slate-900 px-3 text-slate-500">أو</span></div>
+                <div class="relative flex justify-center text-xs"><span class="bg-slate-900 px-3 text-slate-500">OR</span></div>
             </div>
             
-            <input type="email" id="email-input" placeholder="البريد الإلكتروني" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50 placeholder-slate-500 transition-all">
-            <input type="password" id="password-input" placeholder="كلمة المرور" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50 placeholder-slate-500 transition-all">
+            <input type="email" id="email-input" placeholder="Email Address" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50 placeholder-slate-500 transition-all">
+            <input type="password" id="password-input" placeholder="Password" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50 placeholder-slate-500 transition-all">
             
             <button onclick="signInWithEmail()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-indigo-500/20">
-                تسجيل الدخول
+                Sign In
             </button>
             <button onclick="signUpWithEmail()" class="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-3.5 rounded-xl font-semibold transition-all duration-300 border border-white/10">
-                إنشاء حساب جديد
+                Create New Account
             </button>
         </div>
         
-        <p class="text-center text-xs text-slate-600 mt-6">المنصة محمية بـ Firebase Authentication</p>
+        <p class="text-center text-xs text-slate-600 mt-6">Secured by Firebase Authentication</p>
     </div>
 </div>
 
@@ -103,14 +103,21 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
                 <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center font-bold text-slate-900 text-lg">π</div>
                 <div>
                     <h2 class="font-bold">MathMaster</h2>
-                    <p class="text-[10px] text-slate-400">منصة المستر</p>
+                    <p class="text-[10px] text-slate-400">Mr. Waleed Orban</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 md:gap-4">
+                <select id="student-grade-select" onchange="changeGrade(this.value)" class="bg-white/10 text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/10 focus:outline-none text-amber-300">
+                    <option class="bg-slate-900 text-white" value="prep1">Prep 1</option>
+                    <option class="bg-slate-900 text-white" value="prep2">Prep 2</option>
+                    <option class="bg-slate-900 text-white" value="prep3">Prep 3</option>
+                    <option class="bg-slate-900 text-white" value="sec1">1st Sec</option>
+                    <option class="bg-slate-900 text-white" value="sec2" selected>2nd Sec</option>
+                </select>
                 <div class="hidden md:flex items-center gap-2 glass px-3 py-1.5 rounded-full">
                     <span class="text-amber-400">⭐</span>
                     <span id="student-points" class="font-bold text-sm">0</span>
-                    <span class="text-[10px] text-slate-400">نقطة</span>
+                    <span class="text-[10px] text-slate-400">pts</span>
                 </div>
                 <img id="student-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" class="w-9 h-9 rounded-full border-2 border-amber-400/40">
                 <button onclick="logout()" class="text-slate-400 hover:text-rose-400 transition-colors p-2">
@@ -121,48 +128,123 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
     </header>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="mb-6">
-            <h1 class="text-2xl md:text-3xl font-bold mb-1">أهلاً يا <span id="student-name">طالب</span>! 👋</h1>
-            <p class="text-slate-400 text-sm">مستعد للدراسة؟ تابع تقدمك اليوم</p>
+        <!-- Navigation Sub-Tabs -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 no-scrollbar">
+            <button onclick="switchStudentTab('dashboard')" class="student-nav-btn px-4 py-2 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap" data-tab="dashboard">📊 Dashboard</button>
+            <button onclick="switchStudentTab('pdfs')" class="student-nav-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-slate-300 hover:bg-white/10 whitespace-nowrap" data-tab="pdfs">📄 PDFs & Sheets</button>
+            <button onclick="switchStudentTab('forum')" class="student-nav-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-slate-300 hover:bg-white/10 whitespace-nowrap" data-tab="forum">💬 Q&A Forum</button>
+            <button onclick="switchStudentTab('calc')" class="student-nav-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-slate-300 hover:bg-white/10 whitespace-nowrap" data-tab="calc">🧮 Casio Calculator</button>
         </div>
 
-        <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div class="glass-card rounded-2xl p-4 cursor-pointer">
-                <div class="text-2xl mb-1">📚</div>
-                <div id="stat-lessons" class="text-xl font-bold">0</div>
-                <div class="text-[10px] text-slate-400">درس مكتمل</div>
+        <!-- MAIN DASHBOARD TAB -->
+        <div id="st-tab-dashboard" class="st-tab-content">
+            <div class="mb-6 flex justify-between items-end flex-wrap gap-2">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold mb-1">Welcome, <span id="student-name">Student</span>! 👋</h1>
+                    <p class="text-slate-400 text-sm">Current Grade Level: <span id="current-grade-label" class="text-amber-400 font-bold">2nd Secondary</span></p>
+                </div>
             </div>
-            <div class="glass-card rounded-2xl p-4 cursor-pointer">
-                <div class="text-2xl mb-1">📝</div>
-                <div id="stat-exams" class="text-xl font-bold">0</div>
-                <div class="text-[10px] text-slate-400">امتحان</div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div class="glass-card rounded-2xl p-4">
+                    <div class="text-2xl mb-1">📚</div>
+                    <div id="stat-lessons" class="text-xl font-bold">0</div>
+                    <div class="text-[10px] text-slate-400">Lessons Completed</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4">
+                    <div class="text-2xl mb-1">📝</div>
+                    <div id="stat-exams" class="text-xl font-bold">0</div>
+                    <div class="text-[10px] text-slate-400">Exams Taken</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4">
+                    <div class="text-2xl mb-1">🎯</div>
+                    <div id="stat-progress" class="text-xl font-bold">0%</div>
+                    <div class="text-[10px] text-slate-400">Overall Progress</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4">
+                    <div class="text-2xl mb-1">🏆</div>
+                    <div id="stat-rank" class="text-xl font-bold">#--</div>
+                    <div class="text-[10px] text-slate-400">Your Rank</div>
+                </div>
             </div>
-            <div class="glass-card rounded-2xl p-4 cursor-pointer">
-                <div class="text-2xl mb-1">🎯</div>
-                <div id="stat-progress" class="text-xl font-bold">0%</div>
-                <div class="text-[10px] text-slate-400">التقدم</div>
-            </div>
-            <div class="glass-card rounded-2xl p-4 cursor-pointer">
-                <div class="text-2xl mb-1">🏆</div>
-                <div id="stat-rank" class="text-xl font-bold">#--</div>
-                <div class="text-[10px] text-slate-400">ترتيبك</div>
-            </div>
+
+            <!-- Sections Grid -->
+            <h3 class="font-bold text-lg mb-3">📂 Subject Modules</h3>
+            <div id="sections-grid" class="grid md:grid-cols-3 gap-4 mb-6"></div>
+
+            <!-- Exams List -->
+            <h3 class="font-bold text-lg mb-3">📝 Active Quizzes & Exams</h3>
+            <div id="exams-list" class="space-y-3"></div>
         </div>
 
-        <!-- Sections -->
-        <h3 class="font-bold text-lg mb-3">📂 الأقسام الدراسية</h3>
-        <div id="sections-grid" class="grid md:grid-cols-3 gap-4 mb-6">
-            <div class="glass-card rounded-2xl p-8 text-center">
-                <div class="shimmer h-32 rounded-xl mb-4"></div>
-                <div class="shimmer h-4 w-24 mx-auto rounded"></div>
-            </div>
+        <!-- PDFS & MATERIALS TAB -->
+        <div id="st-tab-pdfs" class="st-tab-content hidden">
+            <h3 class="font-bold text-xl mb-4 flex items-center gap-2">📄 Downloadable Materials & Summaries</h3>
+            <div id="student-pdf-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- Exams -->
-        <h3 class="font-bold text-lg mb-3">📝 الامتحانات</h3>
-        <div id="exams-list" class="space-y-3">
-            <div class="glass-card rounded-xl p-5 shimmer h-20"></div>
+        <!-- Q&A FORUM TAB -->
+        <div id="st-tab-forum" class="st-tab-content hidden">
+            <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
+                <div>
+                    <h3 class="font-bold text-xl">💬 Student Discussion Forum</h3>
+                    <p class="text-xs text-slate-400">Ask questions, upload problem photos, and get teacher-approved solutions!</p>
+                </div>
+                <button onclick="showAskQuestionModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg">+ Ask Question</button>
+            </div>
+
+            <div id="forum-questions-list" class="space-y-4"></div>
+        </div>
+
+        <!-- CASIO SCIENTIFIC CALCULATOR TAB -->
+        <div id="st-tab-calc" class="st-tab-content hidden">
+            <div class="max-w-md mx-auto glass rounded-3xl p-6 border border-slate-700 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xs font-bold text-amber-400">CASIO fx-991EX CLASSWIZ</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">SOLAR PLUS</span>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl mb-4 border border-slate-800 text-right">
+                    <div id="calc-screen-expr" class="text-slate-500 text-xs h-4 overflow-hidden"></div>
+                    <div id="calc-screen-val" class="text-3xl font-mono text-emerald-400 font-bold overflow-x-auto">0</div>
+                </div>
+                <!-- Calc Keys Grid -->
+                <div class="grid grid-cols-4 gap-2 text-xs font-bold">
+                    <button onclick="calcOp('sin')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">sin</button>
+                    <button onclick="calcOp('cos')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">cos</button>
+                    <button onclick="calcOp('tan')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">tan</button>
+                    <button onclick="calcClear()" class="p-3 bg-rose-600/80 hover:bg-rose-500 text-white rounded-xl">AC</button>
+
+                    <button onclick="calcOp('log')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">log</button>
+                    <button onclick="calcOp('ln')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">ln</button>
+                    <button onclick="calcOp('sqrt')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">√</button>
+                    <button onclick="calcOp('pow')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">x^y</button>
+
+                    <button onclick="calcInput('(')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">(</button>
+                    <button onclick="calcInput(')')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">)</button>
+                    <button onclick="calcInput('π')" class="p-3 glass rounded-xl hover:bg-white/10 text-slate-300">π</button>
+                    <button onclick="calcInput('/')" class="p-3 bg-indigo-600/50 hover:bg-indigo-500/50 rounded-xl text-amber-300">÷</button>
+
+                    <button onclick="calcInput('7')" class="p-3 glass rounded-xl hover:bg-white/10">7</button>
+                    <button onclick="calcInput('8')" class="p-3 glass rounded-xl hover:bg-white/10">8</button>
+                    <button onclick="calcInput('9')" class="p-3 glass rounded-xl hover:bg-white/10">9</button>
+                    <button onclick="calcInput('*')" class="p-3 bg-indigo-600/50 hover:bg-indigo-500/50 rounded-xl text-amber-300">×</button>
+
+                    <button onclick="calcInput('4')" class="p-3 glass rounded-xl hover:bg-white/10">4</button>
+                    <button onclick="calcInput('5')" class="p-3 glass rounded-xl hover:bg-white/10">5</button>
+                    <button onclick="calcInput('6')" class="p-3 glass rounded-xl hover:bg-white/10">6</button>
+                    <button onclick="calcInput('-')" class="p-3 bg-indigo-600/50 hover:bg-indigo-500/50 rounded-xl text-amber-300">-</button>
+
+                    <button onclick="calcInput('1')" class="p-3 glass rounded-xl hover:bg-white/10">1</button>
+                    <button onclick="calcInput('2')" class="p-3 glass rounded-xl hover:bg-white/10">2</button>
+                    <button onclick="calcInput('3')" class="p-3 glass rounded-xl hover:bg-white/10">3</button>
+                    <button onclick="calcInput('+')" class="p-3 bg-indigo-600/50 hover:bg-indigo-500/50 rounded-xl text-amber-300">+</button>
+
+                    <button onclick="calcInput('0')" class="p-3 glass rounded-xl hover:bg-white/10 col-span-2">0</button>
+                    <button onclick="calcInput('.')" class="p-3 glass rounded-xl hover:bg-white/10">.</button>
+                    <button onclick="calcEval()" class="p-3 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-bold">=</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -174,14 +256,16 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center font-bold text-slate-900">👨‍🏫</div>
                 <div>
-                    <h2 class="font-bold">لوحة التحكم (الأدمن)</h2>
-                    <p class="text-[10px] text-slate-400">المستر - رياضيات</p>
+                    <h2 class="font-bold">Admin Portal</h2>
+                    <p class="text-[10px] text-slate-400">Mr. Waleed Orban - Platform Management</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="switchTeacherTab('students')" class="teacher-tab px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-xs font-semibold" data-tab="students">الطلاب</button>
-                <button onclick="switchTeacherTab('exams')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400" data-tab="exams">الامتحانات</button>
-                <button onclick="switchTeacherTab('sections')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400" data-tab="sections">الأقسام</button>
+            <div class="flex items-center gap-2 overflow-x-auto">
+                <button onclick="switchTeacherTab('students')" class="teacher-tab px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-xs font-semibold whitespace-nowrap" data-tab="students">Students</button>
+                <button onclick="switchTeacherTab('exams')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400 whitespace-nowrap" data-tab="exams">Exams</button>
+                <button onclick="switchTeacherTab('sections')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400 whitespace-nowrap" data-tab="sections">Modules</button>
+                <button onclick="switchTeacherTab('pdfs')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400 whitespace-nowrap" data-tab="pdfs">PDFs/Sheets</button>
+                <button onclick="switchTeacherTab('forum')" class="teacher-tab px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all text-xs text-slate-400 whitespace-nowrap" data-tab="forum">Forum Moderation</button>
                 <button onclick="logout()" class="text-slate-400 hover:text-rose-400 transition-colors p-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 </button>
@@ -190,22 +274,22 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
     </header>
 
     <div class="max-w-7xl mx-auto px-4 py-6">
-        <!-- Stats -->
+        <!-- Stats Grid -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div class="glass-card rounded-2xl p-4 border-l-4 border-blue-500">
-                <div class="text-blue-400 text-[10px] mb-1">إجمالي الطلاب</div>
+                <div class="text-blue-400 text-[10px] mb-1">Total Enrolled</div>
                 <div id="t-stat-total" class="text-2xl font-bold">0</div>
             </div>
             <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-500">
-                <div class="text-emerald-400 text-[10px] mb-1">النشطين</div>
+                <div class="text-emerald-400 text-[10px] mb-1">Active Students</div>
                 <div id="t-stat-active" class="text-2xl font-bold">0</div>
             </div>
             <div class="glass-card rounded-2xl p-4 border-l-4 border-amber-500">
-                <div class="text-amber-400 text-[10px] mb-1">متوسط الدرجات</div>
+                <div class="text-amber-400 text-[10px] mb-1">Avg Progress</div>
                 <div id="t-stat-avg" class="text-2xl font-bold">0%</div>
             </div>
             <div class="glass-card rounded-2xl p-4 border-l-4 border-rose-500">
-                <div class="text-rose-400 text-[10px] mb-1">الامتحانات</div>
+                <div class="text-rose-400 text-[10px] mb-1">Published Exams</div>
                 <div id="t-stat-exams" class="text-2xl font-bold">0</div>
             </div>
         </div>
@@ -214,24 +298,23 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
         <div id="teacher-tab-students" class="teacher-panel">
             <div class="glass rounded-2xl overflow-hidden">
                 <div class="p-4 border-b border-white/10 flex items-center justify-between flex-wrap gap-3">
-                    <h3 class="font-bold">👥 الطلاب المسجلين</h3>
+                    <h3 class="font-bold">👥 Registered Students</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="student-search" oninput="filterStudents()" placeholder="ابحث..." class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-400/50 w-40">
+                        <input type="text" id="student-search" oninput="filterStudents()" placeholder="Search student..." class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-400/50 w-40">
                     </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-white/5 text-slate-400 text-xs">
                             <tr>
-                                <th class="text-right px-4 py-3">الطالب</th>
-                                <th class="text-right px-4 py-3">البريد</th>
-                                <th class="text-right px-4 py-3">التقدم</th>
-                                <th class="text-right px-4 py-3">النقاط</th>
-                                <th class="text-right px-4 py-3">الحالة</th>
+                                <th class="text-left px-4 py-3">Student</th>
+                                <th class="text-left px-4 py-3">Email</th>
+                                <th class="text-left px-4 py-3">Progress</th>
+                                <th class="text-left px-4 py-3">Points</th>
+                                <th class="text-left px-4 py-3">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="teacher-students-table" class="divide-y divide-white/5">
-                        </tbody>
+                        <tbody id="teacher-students-table" class="divide-y divide-white/5"></tbody>
                     </table>
                 </div>
             </div>
@@ -240,74 +323,177 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
         <!-- Exams Tab -->
         <div id="teacher-tab-exams" class="teacher-panel hidden">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold">📝 الامتحانات</h3>
-                <button onclick="showAddExamModal()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ امتحان جديد</button>
+                <h3 class="font-bold">📝 Manage Exams</h3>
+                <button onclick="showAddExamModal()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ Add New Exam</button>
             </div>
-            <div id="teacher-exams-grid" class="grid md:grid-cols-2 gap-4">
-            </div>
+            <div id="teacher-exams-grid" class="grid md:grid-cols-2 gap-4"></div>
         </div>
 
         <!-- Sections Tab -->
         <div id="teacher-tab-sections" class="teacher-panel hidden">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold">📚 الأقسام الدراسية</h3>
-                <button onclick="showAddSectionModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ قسم جديد</button>
+                <h3 class="font-bold">📚 Subject Modules & Video Lessons</h3>
+                <button onclick="showAddSectionModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ Add New Module</button>
             </div>
-            <div id="teacher-sections-grid" class="grid md:grid-cols-3 gap-4">
+            <div id="teacher-sections-grid" class="grid md:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- PDFs Tab -->
+        <div id="teacher-tab-pdfs" class="teacher-panel hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold">📄 PDF Sheets & Material Upload</h3>
+                <button onclick="showAddPdfModal()" class="bg-amber-600 hover:bg-amber-500 px-4 py-2 rounded-xl text-xs font-bold transition-all">+ Add PDF Sheet</button>
             </div>
+            <div id="teacher-pdf-grid" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Forum Moderation Tab -->
+        <div id="teacher-tab-forum" class="teacher-panel hidden">
+            <h3 class="font-bold text-lg mb-4">💬 Pending Student Questions</h3>
+            <div id="teacher-pending-questions" class="space-y-4"></div>
         </div>
     </div>
 </div>
 
 <!-- ==================== MODALS ==================== -->
+
+<!-- LESSON VIEW MODAL -->
 <div id="lesson-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass bg-slate-900 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 md:p-8">
         <div class="flex items-center justify-between mb-6">
-            <h2 id="lesson-modal-title" class="text-xl font-bold">عنوان الدرس</h2>
+            <h2 id="lesson-modal-title" class="text-xl font-bold">Lesson Title</h2>
             <button onclick="closeModal('lesson-modal')" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-all text-sm">✕</button>
         </div>
         <div id="lesson-modal-body" class="space-y-4 text-slate-300 text-sm leading-relaxed"></div>
         <div class="mt-6 pt-4 border-t border-white/10 flex justify-between">
-            <button onclick="closeModal('lesson-modal')" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">إغلاق</button>
-            <button onclick="completeLesson()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">✓ أكملت الدرس</button>
+            <button onclick="closeModal('lesson-modal')" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Close</button>
+            <button onclick="completeLesson()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">✓ Mark Complete</button>
         </div>
     </div>
 </div>
 
+<!-- ADD EXAM MODAL -->
 <div id="exam-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
-        <h2 id="exam-modal-title" class="text-xl font-bold mb-4">امتحان جديد</h2>
+        <h2 id="exam-modal-title" class="text-xl font-bold mb-4">Create New Exam</h2>
         <div class="space-y-3">
-            <input id="exam-title-input" type="text" placeholder="عنوان الامتحان" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
-            <select id="exam-section-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
-                <option value="">اختر القسم</option>
+            <input id="exam-title-input" type="text" placeholder="Exam Title" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+            <select id="exam-grade-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+                <option class="bg-slate-900" value="prep1">Prep 1</option>
+                <option class="bg-slate-900" value="prep2">Prep 2</option>
+                <option class="bg-slate-900" value="prep3">Prep 3</option>
+                <option class="bg-slate-900" value="sec1">1st Sec</option>
+                <option class="bg-slate-900" value="sec2" selected>2nd Sec</option>
             </select>
             <input id="exam-date-input" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50">
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Attach Question/Diagram Image (Optional)</label>
+                <input id="exam-image-input" type="file" accept="image/*" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs">
+            </div>
         </div>
         <div class="mt-6 flex gap-3">
-            <button onclick="closeModal('exam-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">إلغاء</button>
-            <button onclick="addExam()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">حفظ</button>
+            <button onclick="closeModal('exam-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
+            <button onclick="addExam()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">Save Exam</button>
         </div>
     </div>
 </div>
 
+<!-- ADD MODULE/SECTION MODAL -->
 <div id="section-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
-        <h2 class="text-xl font-bold mb-4">قسم جديد</h2>
+        <h2 class="text-xl font-bold mb-4">New Module / Lesson Section</h2>
         <div class="space-y-3">
-            <input id="section-title-input" type="text" placeholder="اسم القسم" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
-            <input id="section-desc-input" type="text" placeholder="وصف مختصر" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+            <input id="section-title-input" type="text" placeholder="Module Title (e.g. Calculus Limits)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+            <input id="section-desc-input" type="text" placeholder="Brief Description" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+            <input id="section-video-input" type="text" placeholder="Video Embed URL (YouTube/Drive)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+            <select id="section-grade-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
+                <option class="bg-slate-900" value="prep1">Prep 1</option>
+                <option class="bg-slate-900" value="prep2">Prep 2</option>
+                <option class="bg-slate-900" value="prep3">Prep 3</option>
+                <option class="bg-slate-900" value="sec1">1st Sec</option>
+                <option class="bg-slate-900" value="sec2" selected>2nd Sec</option>
+            </select>
             <select id="section-color-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400/50">
-                <option value="blue">أزرق</option>
-                <option value="emerald">أخضر</option>
-                <option value="rose">وردي</option>
-                <option value="amber">برتقالي</option>
-                <option value="purple">بنفسجي</option>
+                <option value="blue">Blue Theme</option>
+                <option value="emerald">Green Theme</option>
+                <option value="rose">Rose Theme</option>
+                <option value="amber">Amber Theme</option>
+                <option value="purple">Purple Theme</option>
             </select>
         </div>
         <div class="mt-6 flex gap-3">
-            <button onclick="closeModal('section-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">إلغاء</button>
-            <button onclick="addSection()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold transition-all">حفظ</button>
+            <button onclick="closeModal('section-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
+            <button onclick="addSection()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold transition-all">Save Module</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD PDF SHEET MODAL -->
+<div id="pdf-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
+        <h2 class="text-xl font-bold mb-4">Attach New PDF Sheet</h2>
+        <div class="space-y-3">
+            <input id="pdf-title-input" type="text" placeholder="Sheet Title (e.g. Algebra Homework #1)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50">
+            <input id="pdf-url-input" type="url" placeholder="PDF Direct Link (Google Drive / Direct URL)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50">
+            <select id="pdf-grade-input" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-400/50">
+                <option class="bg-slate-900" value="prep1">Prep 1</option>
+                <option class="bg-slate-900" value="prep2">Prep 2</option>
+                <option class="bg-slate-900" value="prep3">Prep 3</option>
+                <option class="bg-slate-900" value="sec1">1st Sec</option>
+                <option class="bg-slate-900" value="sec2" selected>2nd Sec</option>
+            </select>
+        </div>
+        <div class="mt-6 flex gap-3">
+            <button onclick="closeModal('pdf-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
+            <button onclick="addPdfSheet()" class="flex-1 py-3 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold transition-all">Publish PDF Sheet</button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW PDF VIEWER MODAL -->
+<div id="pdf-viewer-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col p-4">
+    <div class="flex justify-between items-center mb-3 max-w-7xl mx-auto w-full">
+        <h3 id="pdf-viewer-title" class="font-bold text-lg">PDF Viewer</h3>
+        <button onclick="closeModal('pdf-viewer-modal')" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20">✕</button>
+    </div>
+    <div class="flex-1 max-w-7xl mx-auto w-full bg-slate-950 rounded-2xl overflow-hidden border border-slate-800">
+        <iframe id="pdf-iframe" class="w-full h-full" src=""></iframe>
+    </div>
+</div>
+
+<!-- ASK QUESTION MODAL FORUM -->
+<div id="ask-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
+        <h2 class="text-xl font-bold mb-4">Ask Mr. Waleed a Question</h2>
+        <div class="space-y-3">
+            <textarea id="ask-text-input" rows="4" placeholder="Write your problem details or question here..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-400/50"></textarea>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Upload Photo of Problem (Optional)</label>
+                <input id="ask-image-input" type="file" accept="image/*" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs">
+            </div>
+        </div>
+        <div class="mt-6 flex gap-3">
+            <button onclick="closeModal('ask-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
+            <button onclick="submitQuestion()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all">Submit Question</button>
+        </div>
+    </div>
+</div>
+
+<!-- TEACHER ANSWER MODAL FORUM -->
+<div id="answer-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass bg-slate-900 rounded-3xl max-w-xl w-full p-6 md:p-8">
+        <h2 class="text-xl font-bold mb-4">Approve & Answer Question</h2>
+        <input type="hidden" id="answer-question-id">
+        <div class="space-y-3">
+            <textarea id="answer-text-input" rows="4" placeholder="Type step-by-step model solution..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400/50"></textarea>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Attach Solution Photo (Optional)</label>
+                <input id="answer-image-input" type="file" accept="image/*" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs">
+            </div>
+        </div>
+        <div class="mt-6 flex gap-3">
+            <button onclick="closeModal('answer-modal')" class="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold transition-all">Cancel</button>
+            <button onclick="approveAndAnswerQuestion()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold transition-all">Publish Solution</button>
         </div>
     </div>
 </div>
@@ -316,9 +502,11 @@ const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
 <script>
 let currentUser = null;
 let currentRole = 'student';
+let selectedGrade = 'sec2';
 let allStudents = [];
 let allSections = [];
 let allExams = [];
+let allPdfs = [];
 let currentLessonId = null;
 
 const colorMap = {
@@ -329,28 +517,32 @@ const colorMap = {
     purple: { bg: 'from-purple-600 to-violet-700', bar: 'bg-purple-500', text: 'text-purple-300', border: 'border-purple-500/20', light: 'bg-purple-500/20' }
 };
 
-// ===== AUTH =====
+const gradeNames = {
+    prep1: 'Prep 1',
+    prep2: 'Prep 2',
+    prep3: 'Prep 3',
+    sec1: '1st Secondary',
+    sec2: '2nd Secondary'
+};
+
+// ===== AUTHENTICATION =====
 function signInWithGoogle() {
-    auth.signInWithPopup(googleProvider)
-        .catch(err => showError(err.message));
+    auth.signInWithPopup(googleProvider).catch(err => showError(err.message));
 }
 
 function signInWithEmail() {
     const email = document.getElementById('email-input').value;
     const password = document.getElementById('password-input').value;
-    if (!email || !password) return showError('اكمل البيانات');
-    auth.signInWithEmailAndPassword(email, password)
-        .catch(err => showError('البريد أو كلمة المرور غير صحيحة'));
+    if (!email || !password) return showError('Please fill in all fields');
+    auth.signInWithEmailAndPassword(email, password).catch(err => showError('Invalid email or password'));
 }
 
 function signUpWithEmail() {
     const email = document.getElementById('email-input').value;
     const password = document.getElementById('password-input').value;
-    if (!email || !password) return showError('اكمل البيانات');
-    if (password.length < 6) return showError('كلمة المرور لازم 6 حروف على الأقل');
-    
-    auth.createUserWithEmailAndPassword(email, password)
-        .catch(err => showError(err.message));
+    if (!email || !password) return showError('Please fill in all fields');
+    if (password.length < 6) return showError('Password must be at least 6 characters');
+    auth.createUserWithEmailAndPassword(email, password).catch(err => showError(err.message));
 }
 
 function logout() {
@@ -373,24 +565,18 @@ auth.onAuthStateChanged(user => {
     if (user) {
         currentUser = user;
         const userEmail = user.email.toLowerCase();
-        
-        // فحص هل الإيميل هو إيميل الأدمن المخصص
         const assignedRole = (userEmail === ADMIN_EMAIL.toLowerCase()) ? 'teacher' : 'student';
 
         db.collection('users').doc(user.uid).get().then(doc => {
             if (doc.exists) {
                 const data = doc.data();
-                
-                // تحديث الـ Role لو تحول البريد لأدمن
                 if (data.role !== assignedRole) {
                     db.collection('users').doc(user.uid).update({ role: assignedRole });
                     data.role = assignedRole;
                 }
-                
                 currentRole = data.role;
                 handleAuthSuccess(user, data);
             } else {
-                // إنشاء حساب جديد مع تعيين الـ Role الصحيح
                 const newUser = {
                     name: user.displayName || user.email.split('@')[0],
                     email: user.email,
@@ -399,18 +585,18 @@ auth.onAuthStateChanged(user => {
                     progress: 0,
                     lessonsCompleted: 0,
                     examsTaken: 0,
+                    grade: 'sec2',
                     photoURL: user.photoURL || '',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
-                
                 db.collection('users').doc(user.uid).set(newUser).then(() => {
                     currentRole = assignedRole;
                     handleAuthSuccess(user, newUser);
                 });
             }
         }).catch(err => {
-            console.error("Error fetching user role:", err);
-            showError("حدث خطأ في جلب بيانات الحساب");
+            console.error("Error fetching user data:", err);
+            showError("Error connecting to user profile");
         });
     } else {
         showScreen('login-screen');
@@ -424,6 +610,8 @@ function handleAuthSuccess(user, data) {
         loadTeacherData();
     } else {
         showScreen('student-dashboard');
+        if (data.grade) selectedGrade = data.grade;
+        document.getElementById('student-grade-select').value = selectedGrade;
         loadStudentData(user.uid);
     }
 }
@@ -435,12 +623,42 @@ function showScreen(id) {
     document.getElementById(id).classList.remove('hidden');
 }
 
-// ===== STUDENT FUNCTIONS =====
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// ===== STUDENT LOGIC =====
+function changeGrade(grade) {
+    selectedGrade = grade;
+    document.getElementById('current-grade-label').textContent = gradeNames[grade];
+    if (currentUser) {
+        db.collection('users').doc(currentUser.uid).update({ grade: grade });
+        loadStudentData(currentUser.uid);
+    }
+}
+
+function switchStudentTab(tab) {
+    document.querySelectorAll('.student-nav-btn').forEach(btn => {
+        btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border', 'border-amber-500/30');
+        btn.classList.add('bg-white/5', 'text-slate-300');
+    });
+    const activeBtn = document.querySelector(`.student-nav-btn[data-tab="${tab}"]`);
+    if(activeBtn) {
+        activeBtn.classList.remove('bg-white/5', 'text-slate-300');
+        activeBtn.classList.add('bg-amber-500/20', 'text-amber-300', 'border', 'border-amber-500/30');
+    }
+
+    document.querySelectorAll('.st-tab-content').forEach(c => c.classList.add('hidden'));
+    document.getElementById(`st-tab-${tab}`).classList.remove('hidden');
+}
+
 function loadStudentData(uid) {
+    document.getElementById('current-grade-label').textContent = gradeNames[selectedGrade];
+
     db.collection('users').doc(uid).onSnapshot(doc => {
         if (!doc.exists) return;
         const data = doc.data();
-        document.getElementById('student-name').textContent = data.name || 'طالب';
+        document.getElementById('student-name').textContent = data.name || 'Student';
         document.getElementById('student-points').textContent = data.points || 0;
         document.getElementById('stat-lessons').textContent = data.lessonsCompleted || 0;
         document.getElementById('stat-exams').textContent = data.examsTaken || 0;
@@ -448,57 +666,118 @@ function loadStudentData(uid) {
         if (data.photoURL) document.getElementById('student-avatar').src = data.photoURL;
     });
 
-    db.collection('sections').orderBy('createdAt', 'desc').onSnapshot(snap => {
-        allSections = [];
+    // Load Grade Modules
+    db.collection('sections').where('grade', '==', selectedGrade).onSnapshot(snap => {
         const grid = document.getElementById('sections-grid');
         grid.innerHTML = '';
+        if (snap.empty) {
+            grid.innerHTML = `<p class="text-xs text-slate-500 col-span-3">No modules available for ${gradeNames[selectedGrade]} yet.</p>`;
+            return;
+        }
         snap.forEach(doc => {
             const s = doc.data();
-            s.id = doc.id;
-            allSections.push(s);
             const c = colorMap[s.color || 'blue'];
             grid.innerHTML += `
-                <div class="glass-card rounded-2xl overflow-hidden group cursor-pointer" onclick="openLesson('${doc.id}', '${s.title}')">
+                <div class="glass-card rounded-2xl overflow-hidden group cursor-pointer" onclick="openLesson('${doc.id}', '${s.title}', '${s.videoUrl || ''}', '${s.description || ''}')">
                     <div class="h-36 bg-gradient-to-br ${c.bg} flex items-center justify-center relative overflow-hidden">
-                        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 20px 20px;"></div>
-                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">${s.icon || '📚'}</span>
+                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">📐</span>
                     </div>
                     <div class="p-4">
                         <div class="flex items-center justify-between mb-1">
-                            <h3 class="font-bold">${s.title}</h3>
-                            <span class="text-[10px] ${c.light} ${c.text} px-2 py-0.5 rounded-full">${s.lessonCount || 0} درس</span>
+                            <h3 class="font-bold text-sm">${s.title}</h3>
+                            <span class="text-[10px] ${c.light} ${c.text} px-2 py-0.5 rounded-full">Module</span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-3">${s.description || ''}</p>
-                        <div class="w-full bg-white/10 rounded-full h-1.5">
-                            <div class="${c.bar} h-1.5 rounded-full progress-bar" style="width: ${s.progress || 0}%"></div>
-                        </div>
+                        <p class="text-xs text-slate-400 mb-3">${s.description || 'Interactive Math Lesson'}</p>
                     </div>
                 </div>
             `;
         });
     });
 
-    db.collection('exams').orderBy('createdAt', 'desc').onSnapshot(snap => {
+    // Load Exams
+    db.collection('exams').where('grade', '==', selectedGrade).onSnapshot(snap => {
         const list = document.getElementById('exams-list');
         list.innerHTML = '';
+        if (snap.empty) {
+            list.innerHTML = `<p class="text-xs text-slate-500">No active exams right now.</p>`;
+            return;
+        }
         snap.forEach(doc => {
             const e = doc.data();
             const isUpcoming = e.date && new Date(e.date) > new Date();
             list.innerHTML += `
-                <div class="glass-card rounded-xl p-4 flex items-center justify-between cursor-pointer hover:pl-6 transition-all">
+                <div class="glass-card rounded-xl p-4 flex items-center justify-between cursor-pointer">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 ${isUpcoming ? 'bg-amber-500/20' : 'bg-emerald-500/20'} rounded-xl flex items-center justify-center text-lg">${isUpcoming ? '📊' : '✅'}</div>
+                        <div class="w-10 h-10 ${isUpcoming ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} rounded-xl flex items-center justify-center text-lg font-bold">${isUpcoming ? '📝' : '✅'}</div>
                         <div>
                             <div class="font-semibold text-sm">${e.title}</div>
-                            <div class="text-[10px] text-slate-400">${e.sectionName || 'عام'} ${e.date ? '| ' + e.date : ''}</div>
+                            <div class="text-[10px] text-slate-400">${gradeNames[e.grade || selectedGrade]} ${e.date ? '| Due: ' + e.date : ''}</div>
                         </div>
                     </div>
-                    <span class="text-[10px] ${isUpcoming ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} px-2 py-1 rounded-full">${isUpcoming ? 'قادم' : 'منتهي'}</span>
+                    ${e.imageUrl ? `<img src="${e.imageUrl}" class="w-12 h-12 object-cover rounded-lg border border-white/10">` : ''}
                 </div>
             `;
         });
     });
 
+    // Load PDFs
+    db.collection('pdfs').where('grade', '==', selectedGrade).onSnapshot(snap => {
+        const grid = document.getElementById('student-pdf-grid');
+        grid.innerHTML = '';
+        if(snap.empty) {
+            grid.innerHTML = `<p class="text-xs text-slate-500 col-span-3">No PDFs or sheets published for this grade yet.</p>`;
+            return;
+        }
+        snap.forEach(doc => {
+            const p = doc.data();
+            grid.innerHTML += `
+                <div class="glass-card rounded-2xl p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-2">📄</div>
+                        <h4 class="font-bold text-sm mb-1">${p.title}</h4>
+                        <p class="text-[10px] text-slate-400 mb-4">${gradeNames[p.grade]}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="viewPdf('${p.url}', '${p.title}')" class="flex-1 py-2 bg-indigo-600/40 hover:bg-indigo-600 rounded-xl text-xs font-semibold">Preview</button>
+                        <a href="${p.url}" target="_blank" download class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold flex items-center justify-center">⬇️</a>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    // Load Approved Forum Questions
+    db.collection('forum').where('status', '==', 'approved').onSnapshot(snap => {
+        const list = document.getElementById('forum-questions-list');
+        list.innerHTML = '';
+        if(snap.empty) {
+            list.innerHTML = `<p class="text-xs text-slate-500">No answered questions yet. Be the first to ask!</p>`;
+            return;
+        }
+        snap.forEach(doc => {
+            const q = doc.data();
+            list.innerHTML += `
+                <div class="glass-card rounded-2xl p-5 space-y-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 bg-indigo-500/20 text-indigo-300 rounded-full flex items-center justify-center text-xs font-bold">Q</div>
+                        <span class="text-xs font-semibold text-slate-300">${q.studentName}</span>
+                    </div>
+                    <p class="text-sm font-medium text-white">${q.questionText}</p>
+                    ${q.questionImage ? `<img src="${q.questionImage}" class="max-h-60 rounded-xl border border-white/10 my-2">` : ''}
+                    
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mt-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-bold text-emerald-400">👨‍🏫 Mr. Waleed's Solution:</span>
+                        </div>
+                        <p class="text-xs text-emerald-100 whitespace-pre-line">${q.answerText || 'Solved'}</p>
+                        ${q.answerImage ? `<img src="${q.answerImage}" class="max-h-60 rounded-xl border border-emerald-500/30 mt-2">` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    // Rank Calculation
     db.collection('users').where('role', '==', 'student').orderBy('points', 'desc').get().then(snap => {
         let rank = 1;
         snap.forEach(doc => {
@@ -511,26 +790,24 @@ function loadStudentData(uid) {
     });
 }
 
-function openLesson(sectionId, title) {
+function viewPdf(url, title) {
+    document.getElementById('pdf-viewer-title').textContent = title;
+    let embedUrl = url;
+    if(url.includes('drive.google.com')) {
+        embedUrl = url.replace('/view', '/preview');
+    }
+    document.getElementById('pdf-iframe').src = embedUrl;
+    document.getElementById('pdf-viewer-modal').classList.remove('hidden');
+}
+
+function openLesson(sectionId, title, videoUrl, desc) {
     currentLessonId = sectionId;
     document.getElementById('lesson-modal-title').textContent = title;
     document.getElementById('lesson-modal-body').innerHTML = `
+        ${videoUrl ? `<div class="aspect-video w-full rounded-2xl overflow-hidden mb-4"><iframe src="${videoUrl}" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>` : ''}
         <div class="bg-white/5 rounded-xl p-5 mb-4">
-            <h4 class="font-bold text-amber-300 mb-3">🎯 الهدف من الدرس</h4>
-            <p>في هذا الدرس هتتعلم المفاهيم الأساسية مع تمارين تفاعلية.</p>
-        </div>
-        <div class="bg-white/5 rounded-xl p-5 mb-4">
-            <h4 class="font-bold text-blue-300 mb-3">📖 المحتوى</h4>
-            <ul class="list-disc list-inside space-y-2 text-slate-300">
-                <li>مقدمة في الموضوع</li>
-                <li>القواعد الأساسية</li>
-                <li>أمثلة تطبيقية</li>
-                <li>تمارين للتدريب</li>
-            </ul>
-        </div>
-        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5">
-            <h4 class="font-bold text-amber-300 mb-3">💡 تلميح</h4>
-            <p>ركز في الأمثلة وحاول تحلها لوحدك قبل ما تشوف الحل.</p>
+            <h4 class="font-bold text-amber-300 mb-2">📝 Overview</h4>
+            <p class="text-xs text-slate-300">${desc || 'Study the main concepts and work through the model examples.'}</p>
         </div>
     `;
     document.getElementById('lesson-modal').classList.remove('hidden');
@@ -538,38 +815,115 @@ function openLesson(sectionId, title) {
 
 function completeLesson() {
     if (!currentUser || !currentLessonId) return;
-    const uid = currentUser.uid;
-    
-    db.collection('users').doc(uid).update({
+    db.collection('users').doc(currentUser.uid).update({
         lessonsCompleted: firebase.firestore.FieldValue.increment(1),
         points: firebase.firestore.FieldValue.increment(50),
         progress: firebase.firestore.FieldValue.increment(5)
     }).then(() => {
-        alert('🎉 تم إكمال الدرس! +50 نقطة');
+        alert('🎉 Great job! Lesson completed (+50 points)');
         closeModal('lesson-modal');
     });
 }
 
-// ===== TEACHER FUNCTIONS =====
+// ===== FORUM QUESTION SUBMISSION =====
+function showAskQuestionModal() {
+    document.getElementById('ask-modal').classList.remove('hidden');
+}
+
+function submitQuestion() {
+    const text = document.getElementById('ask-text-input').value;
+    const fileInput = document.getElementById('ask-image-input');
+    if(!text) return alert('Please enter your question details.');
+
+    const saveQuestion = (imgBase64 = '') => {
+        db.collection('forum').add({
+            studentId: currentUser.uid,
+            studentName: currentUser.displayName || currentUser.email.split('@')[0],
+            grade: selectedGrade,
+            questionText: text,
+            questionImage: imgBase64,
+            status: 'pending',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert('Your question has been sent to Mr. Waleed for review!');
+            document.getElementById('ask-text-input').value = '';
+            fileInput.value = '';
+            closeModal('ask-modal');
+        });
+    };
+
+    if(fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { saveQuestion(e.target.result); };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        saveQuestion();
+    }
+}
+
+// ===== CALCULATOR LOGIC =====
+let calcExpr = '';
+function calcInput(val) {
+    calcExpr += val;
+    document.getElementById('calc-screen-expr').textContent = calcExpr;
+}
+function calcOp(op) {
+    if(op === 'sqrt') calcExpr += 'Math.sqrt(';
+    else if(op === 'pow') calcExpr += '**';
+    else calcExpr += `Math.${op}(`;
+    document.getElementById('calc-screen-expr').textContent = calcExpr;
+}
+function calcClear() {
+    calcExpr = '';
+    document.getElementById('calc-screen-expr').textContent = '';
+    document.getElementById('calc-screen-val').textContent = '0';
+}
+function calcEval() {
+    try {
+        let parsed = calcExpr.replace(/π/g, 'Math.PI');
+        let res = eval(parsed);
+        document.getElementById('calc-screen-val').textContent = Number.isInteger(res) ? res : res.toFixed(4);
+    } catch(e) {
+        document.getElementById('calc-screen-val').textContent = 'Error';
+    }
+}
+
+// ===== TEACHER / ADMIN LOGIC =====
+function switchTeacherTab(tab) {
+    document.querySelectorAll('.teacher-tab').forEach(b => {
+        b.classList.remove('bg-white/10', 'text-white');
+        b.classList.add('text-slate-400');
+    });
+    const active = document.querySelector(`.teacher-tab[data-tab="${tab}"]`);
+    if(active) {
+        active.classList.add('bg-white/10', 'text-white');
+        active.classList.remove('text-slate-400');
+    }
+
+    document.querySelectorAll('.teacher-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById(`teacher-tab-${tab}`).classList.remove('hidden');
+}
+
 function loadTeacherData() {
+    // Load Students List
     db.collection('users').where('role', '==', 'student').onSnapshot(snap => {
         allStudents = [];
-        let total = 0, active = 0, totalPoints = 0;
+        let total = 0, active = 0, sumProgress = 0;
         const tbody = document.getElementById('teacher-students-table');
         tbody.innerHTML = '';
-        
+
         snap.forEach(doc => {
             const s = doc.data();
             s.id = doc.id;
             allStudents.push(s);
             total++;
-            totalPoints += s.points || 0;
+            sumProgress += (s.progress || 0);
             if ((s.progress || 0) > 20) active++;
-            
-            const status = (s.progress || 0) > 70 ? ['نشط', 'bg-emerald-500/20 text-emerald-300'] :
-                          (s.progress || 0) > 30 ? ['متوسط', 'bg-amber-500/20 text-amber-300'] :
-                          ['يحتاج متابعة', 'bg-rose-500/20 text-rose-300'];
-            
+
+            const status = (s.progress || 0) > 70 ? ['Active', 'bg-emerald-500/20 text-emerald-300'] :
+                           (s.progress || 0) > 30 ? ['Medium', 'bg-amber-500/20 text-amber-300'] :
+                           ['Needs Followup', 'bg-rose-500/20 text-rose-300'];
+
             tbody.innerHTML += `
                 <tr class="hover:bg-white/5 transition-all">
                     <td class="px-4 py-3">
@@ -584,145 +938,201 @@ function loadTeacherData() {
                             <div class="w-16 bg-white/10 rounded-full h-1.5">
                                 <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${s.progress || 0}%"></div>
                             </div>
-                            <span class="text-[10px]">${s.progress || 0}%</span>
+                            <span class="text-xs font-mono">${s.progress || 0}%</span>
                         </div>
                     </td>
-                    <td class="px-4 py-3 text-xs">${s.points || 0}</td>
-                    <td class="px-4 py-3"><span class="${status[1]} px-2 py-0.5 rounded-full text-[10px]">${status[0]}</span></td>
+                    <td class="px-4 py-3 text-xs font-bold text-amber-400">${s.points || 0}</td>
+                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full ${status[1]}">${status[0]}</span></td>
                 </tr>
             `;
         });
-        
+
         document.getElementById('t-stat-total').textContent = total;
         document.getElementById('t-stat-active').textContent = active;
-        document.getElementById('t-stat-avg').textContent = total > 0 ? Math.round(totalPoints / total) + ' نقطة' : '0';
+        document.getElementById('t-stat-avg').textContent = total > 0 ? Math.round(sumProgress / total) + '%' : '0%';
     });
 
-    db.collection('exams').orderBy('createdAt', 'desc').onSnapshot(snap => {
-        allExams = [];
+    // Load Modules
+    db.collection('sections').onSnapshot(snap => {
+        const grid = document.getElementById('teacher-sections-grid');
+        grid.innerHTML = '';
+        snap.forEach(doc => {
+            const s = doc.data();
+            grid.innerHTML += `
+                <div class="glass-card rounded-2xl p-4 border border-white/10">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-sm">${s.title}</h4>
+                        <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">${gradeNames[s.grade || 'sec2']}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">${s.description || ''}</p>
+                    <button onclick="deleteDoc('sections', '${doc.id}')" class="text-xs text-rose-400 hover:underline">Delete Module</button>
+                </div>
+            `;
+        });
+    });
+
+    // Load Exams
+    db.collection('exams').onSnapshot(snap => {
         document.getElementById('t-stat-exams').textContent = snap.size;
         const grid = document.getElementById('teacher-exams-grid');
         grid.innerHTML = '';
         snap.forEach(doc => {
             const e = doc.data();
-            e.id = doc.id;
-            allExams.push(e);
-            const isUpcoming = e.date && new Date(e.date) > new Date();
             grid.innerHTML += `
-                <div class="glass-card rounded-xl p-4 border-l-4 ${isUpcoming ? 'border-amber-500' : 'border-emerald-500'}">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-semibold text-sm">${e.title}</span>
-                        <span class="text-[10px] ${isUpcoming ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} px-2 py-0.5 rounded-full">${isUpcoming ? 'قادم' : 'منتهي'}</span>
+                <div class="glass-card rounded-2xl p-4 flex justify-between items-center border border-white/10">
+                    <div>
+                        <h4 class="font-bold text-sm">${e.title}</h4>
+                        <p class="text-xs text-slate-400">${gradeNames[e.grade || 'sec2']} | Due: ${e.date || 'N/A'}</p>
                     </div>
-                    <div class="text-xs text-slate-400">${e.sectionName || 'عام'} | ${e.date || 'بدون تاريخ'}</div>
+                    <button onclick="deleteDoc('exams', '${doc.id}')" class="text-xs text-rose-400 hover:underline">Delete</button>
                 </div>
             `;
         });
     });
 
-    db.collection('sections').orderBy('createdAt', 'desc').onSnapshot(snap => {
-        const grid = document.getElementById('teacher-sections-grid');
+    // Load PDFs
+    db.collection('pdfs').onSnapshot(snap => {
+        const grid = document.getElementById('teacher-pdf-grid');
         grid.innerHTML = '';
         snap.forEach(doc => {
-            const s = doc.data();
-            const c = colorMap[s.color || 'blue'];
+            const p = doc.data();
             grid.innerHTML += `
-                <div class="glass-card rounded-xl p-4 text-center cursor-pointer hover:scale-[1.02] transition-all">
-                    <div class="text-3xl mb-2">${s.icon || '📚'}</div>
-                    <div class="font-semibold text-sm">${s.title}</div>
-                    <div class="text-[10px] text-slate-400 mt-1">${s.lessonCount || 0} درس</div>
+                <div class="glass-card rounded-2xl p-4 flex justify-between items-center border border-white/10">
+                    <div>
+                        <h4 class="font-bold text-sm">${p.title}</h4>
+                        <p class="text-xs text-slate-400">${gradeNames[p.grade]}</p>
+                    </div>
+                    <button onclick="deleteDoc('pdfs', '${doc.id}')" class="text-xs text-rose-400 hover:underline">Delete</button>
                 </div>
             `;
         });
-        
-        const select = document.getElementById('exam-section-input');
-        select.innerHTML = '<option value="">اختر القسم</option>';
+    });
+
+    // Load Pending Questions
+    db.collection('forum').where('status', '==', 'pending').onSnapshot(snap => {
+        const list = document.getElementById('teacher-pending-questions');
+        list.innerHTML = '';
+        if(snap.empty) {
+            list.innerHTML = `<p class="text-xs text-slate-500">No pending student questions.</p>`;
+            return;
+        }
         snap.forEach(doc => {
-            const s = doc.data();
-            select.innerHTML += `<option value="${doc.id}">${s.title}</option>`;
+            const q = doc.data();
+            list.innerHTML += `
+                <div class="glass-card rounded-2xl p-5 border border-amber-500/30">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-amber-300">${q.studentName} (${gradeNames[q.grade]})</span>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">Pending Approval</span>
+                    </div>
+                    <p class="text-sm mb-3">${q.questionText}</p>
+                    ${q.questionImage ? `<img src="${q.questionImage}" class="max-h-48 rounded-xl mb-3 border border-white/10">` : ''}
+                    <div class="flex gap-2">
+                        <button onclick="showAnswerModal('${doc.id}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold">Approve & Answer</button>
+                        <button onclick="deleteDoc('forum', '${doc.id}')" class="px-4 py-2 bg-rose-600/30 hover:bg-rose-600 text-rose-200 rounded-xl text-xs font-semibold">Reject</button>
+                    </div>
+                </div>
+            `;
         });
     });
-}
-
-function switchTeacherTab(tab) {
-    document.querySelectorAll('.teacher-tab').forEach(t => {
-        t.classList.remove('bg-white/10', 'text-white', 'font-semibold');
-        t.classList.add('text-slate-400');
-    });
-    document.querySelector(`[data-tab="${tab}"]`).classList.add('bg-white/10', 'text-white', 'font-semibold');
-    document.querySelector(`[data-tab="${tab}"]`).classList.remove('text-slate-400');
-    
-    document.querySelectorAll('.teacher-panel').forEach(p => p.classList.add('hidden'));
-    document.getElementById('teacher-tab-' + tab).classList.remove('hidden');
 }
 
 function filterStudents() {
-    const query = document.getElementById('student-search').value.toLowerCase();
-    const rows = document.querySelectorAll('#teacher-students-table tr');
-    rows.forEach(row => {
-        const name = row.querySelector('.font-semibold')?.textContent.toLowerCase() || '';
-        row.style.display = name.includes(query) ? '' : 'none';
+    const q = document.getElementById('student-search').value.toLowerCase();
+    document.querySelectorAll('#teacher-students-table tr').forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        const email = row.cells[1].textContent.toLowerCase();
+        row.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
     });
 }
 
-// ===== MODALS =====
-function showAddExamModal() {
-    document.getElementById('exam-modal').classList.remove('hidden');
-}
-
-function showAddSectionModal() {
-    document.getElementById('section-modal').classList.remove('hidden');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-}
+function showAddExamModal() { document.getElementById('exam-modal').classList.remove('hidden'); }
+function showAddSectionModal() { document.getElementById('section-modal').classList.remove('hidden'); }
+function showAddPdfModal() { document.getElementById('pdf-modal').classList.remove('hidden'); }
 
 function addExam() {
     const title = document.getElementById('exam-title-input').value;
-    const sectionId = document.getElementById('exam-section-input').value;
+    const grade = document.getElementById('exam-grade-input').value;
     const date = document.getElementById('exam-date-input').value;
-    
-    if (!title) return alert('اكتب عنوان الامتحان');
-    
-    const sectionName = allSections.find(s => s.id === sectionId)?.title || 'عام';
-    
-    db.collection('exams').add({
-        title,
-        sectionId,
-        sectionName,
-        date,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdBy: currentUser.uid
-    }).then(() => {
-        closeModal('exam-modal');
-        document.getElementById('exam-title-input').value = '';
-        document.getElementById('exam-date-input').value = '';
-    });
+    const fileInput = document.getElementById('exam-image-input');
+    if(!title) return alert('Please fill in exam title');
+
+    const saveExam = (imgBase64 = '') => {
+        db.collection('exams').add({
+            title, grade, date, imageUrl: imgBase64, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            closeModal('exam-modal');
+        });
+    };
+
+    if(fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { saveExam(e.target.result); };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        saveExam();
+    }
 }
 
 function addSection() {
     const title = document.getElementById('section-title-input').value;
-    const description = document.getElementById('section-desc-input').value;
+    const desc = document.getElementById('section-desc-input').value;
+    const videoUrl = document.getElementById('section-video-input').value;
+    const grade = document.getElementById('section-grade-input').value;
     const color = document.getElementById('section-color-input').value;
-    
-    if (!title) return alert('اكتب اسم القسم');
-    
+    if(!title) return alert('Please fill in title');
+
     db.collection('sections').add({
-        title,
-        description,
-        color,
-        icon: '📚',
-        lessonCount: 0,
-        progress: 0,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        closeModal('section-modal');
-        document.getElementById('section-title-input').value = '';
-        document.getElementById('section-desc-input').value = '';
-    });
+        title, description: desc, videoUrl, grade, color, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => closeModal('section-modal'));
+}
+
+function addPdfSheet() {
+    const title = document.getElementById('pdf-title-input').value;
+    const url = document.getElementById('pdf-url-input').value;
+    const grade = document.getElementById('pdf-grade-input').value;
+    if(!title || !url) return alert('Please enter title and URL');
+
+    db.collection('pdfs').add({
+        title, url, grade, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => closeModal('pdf-modal'));
+}
+
+function showAnswerModal(id) {
+    document.getElementById('answer-question-id').value = id;
+    document.getElementById('answer-modal').classList.remove('hidden');
+}
+
+function approveAndAnswerQuestion() {
+    const id = document.getElementById('answer-question-id').value;
+    const answerText = document.getElementById('answer-text-input').value;
+    const fileInput = document.getElementById('answer-image-input');
+
+    const updateQuestion = (imgBase64 = '') => {
+        db.collection('forum').doc(id).update({
+            answerText,
+            answerImage: imgBase64,
+            status: 'approved'
+        }).then(() => {
+            closeModal('answer-modal');
+            document.getElementById('answer-text-input').value = '';
+            fileInput.value = '';
+        });
+    };
+
+    if(fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { updateQuestion(e.target.result); };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        updateQuestion();
+    }
+}
+
+function deleteDoc(collection, id) {
+    if(confirm('Are you sure you want to delete this item?')) {
+        db.collection(collection).doc(id).delete();
+    }
 }
 </script>
-
 </body>
 </html>
