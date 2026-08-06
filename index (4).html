@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathMaster Pro - Mr. Waleed Orban Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brown: {
+                            50: '#fdf8f5', 100: '#f7ede8', 200: '#eedad0', 300: '#dfbcab',
+                            400: '#c8963e', 500: '#a36d2b', 600: '#845121', 700: '#5c3616',
+                            800: '#3d2317', 900: '#2c1810',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Poppins', 'Cairo', sans-serif; }
+        .dark body { background: linear-gradient(135deg, #2c1810 0%, #3d2317 50%, #1a0d08 100%); color: #f7ede8; }
+        body { background: linear-gradient(135deg, #fdf8f5 0%, #eedad0 100%); color: #2c1810; transition: background 0.4s ease, color 0.4s ease; }
+        .dark .glass { background: rgba(44, 24, 16, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(200, 150, 62, 0.2); }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(163, 109, 43, 0.25); }
+        .dark .glass-card { background: rgba(61, 35, 23, 0.55); backdrop-filter: blur(15px); border: 1px solid rgba(200, 150, 62, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(163, 109, 43, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card:hover { transform: translateY(-4px); border-color: rgba(200, 150, 62, 0.5); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+        .btn-gold { background: linear-gradient(135deg, #c8963e 0%, #a36d2b 100%); color: #ffffff; box-shadow: 0 4px 15px rgba(200, 150, 62, 0.3); }
+        .btn-gold:hover { background: linear-gradient(135deg, #d8a64e 0%, #b37d3b 100%); transform: translateY(-1px); }
+        .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        ::-webkit-scrollbar { width: 8px; }
+        .dark ::-webkit-scrollbar-track { background: #2c1810; }
+        ::-webkit-scrollbar-track { background: #fdf8f5; }
+        ::-webkit-scrollbar-thumb { background: #c8963e; border-radius: 4px; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; color: white; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast-info { background: linear-gradient(135deg, #c8963e, #a36d2b); }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-hidden .modal-content { transform: scale(0.95) translateY(10px); opacity: 0; }
+        .modal-visible { opacity: 1; pointer-events: auto; }
+        .modal-visible .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        .nav-btn-active { background: linear-gradient(135deg, #c8963e 0%, #a36d2b 100%) !important; color: #ffffff !important; }
+        .exam-option:checked + label { border-color: #c8963e; background: rgba(200, 150, 62, 0.15); }
+        .dark .exam-option:checked + label { border-color: #c8963e; background: rgba(200, 150, 62, 0.25); }
+        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .shimmer { background: linear-gradient(90deg, rgba(200,150,62,0.1) 25%, rgba(200,150,62,0.2) 50%, rgba(200,150,62,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+<base target="_blank">
+</head>
+<body class="min-h-screen font-sans antialiased">
+
+<div id="toast-container"></div>
+
+<div class="fixed bottom-6 left-6 z-50">
+    <button onclick="toggleTheme()" class="p-3.5 glass rounded-full shadow-2xl hover:scale-110 transition-all border border-brown-400/40 text-brown-400" aria-label="Toggle Theme">
+        <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="w-6 h-6 block dark:hidden text-brown-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    </button>
+</div>
+
+<div id="loading-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-brown-900/95 backdrop-blur-sm transition-opacity duration-500">
+    <div class="w-16 h-16 border-4 border-brown-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p class="text-brown-400 text-sm font-semibold">Preparing Mr. Waleed Orban's Platform...</p>
+</div>
+
+<div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-5xl glass rounded-3xl overflow-hidden shadow-2xl border border-brown-400/30 grid md:grid-cols-12">
+        <div class="md:col-span-6 bg-gradient-to-br from-brown-900 to-brown-800 p-8 flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-brown-400/20">
+            <div class="absolute inset-0 opacity-10 pointer-events-none select-none text-white text-xs font-mono p-4 leading-relaxed">
+                f(x) = ∫ e^x dx <br>sin²(θ) + cos²(θ) = 1<br>x = [-b ± √(b² - 4ac)] / 2a<br>∇ × B = μ₀J + μ₀ε₀(∂E/∂t)<br>lim (x→∞) (1 + 1/n)^n = e
+            </div>
+            <div class="relative z-10 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-brown-400 to-brown-600 rounded-xl flex items-center justify-center font-black text-white text-lg shadow-md">π</div>
+                <span class="text-xs font-bold text-brown-400 tracking-wider">MATHMASTER PRO</span>
+            </div>
+            <div class="relative z-10 my-8 text-center md:text-left">
+                <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brown-400 to-amber-300 mb-3 font-sans tracking-wide">Welcome to Mr. Waleed's Platform</h1>
+                <p class="text-brown-200/80 text-xs max-w-md leading-relaxed font-sans">Embark on an elite mathematical journey. Learn, practice, and master complex concepts with top-tier resources, interactive exams, and personalized teacher guidance.</p>
+            </div>
+            <div class="relative z-10 flex justify-center items-center">
+                <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=600" alt="Mathematics Education" class="max-h-64 object-contain rounded-2xl shadow-xl border border-brown-400/30 bg-brown-950/40 p-2 transform hover:scale-105 transition-transform duration-300" loading="lazy">
+            </div>
+        </div>
+        <div class="md:col-span-6 p-8 flex flex-col justify-center">
+            <div class="text-center mb-6 md:hidden">
+                <h2 class="text-2xl font-extrabold text-brown-400">Mr. Waleed Orban</h2>
+                <p class="text-xs text-brown-400/80 mt-1">Welcome to Mr. Waleed's Platform</p>
+            </div>
+            <div id="login-error" class="hidden bg-rose-500/20 border border-rose-500/40 text-rose-300 px-4 py-3 rounded-xl text-xs mb-4 text-center"></div>
+            <div class="space-y-4">
+                <button onclick="signInWithGoogle()" id="google-signin-btn" class="w-full flex items-center justify-center gap-3 bg-white text-slate-800 py-3.5 rounded-xl font-bold hover:bg-slate-100 transition-all shadow-md group border border-slate-200 text-sm">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Sign in with Google
+                </button>
+                <div class="relative my-4">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-brown-400/20"></div></div>
+                    <div class="relative flex justify-center text-xs"><span class="glass px-3 text-brown-400 font-semibold">Or via Email</span></div>
+                </div>
+                <input type="email" id="email-input" placeholder="Email Address" class="w-full bg-brown-900/10 dark:bg-brown-900/50 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 transition-all text-brown-800 dark:text-brown-100 placeholder-brown-400/60">
+                <input type="password" id="password-input" placeholder="Password" class="w-full bg-brown-900/10 dark:bg-brown-900/50 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 transition-all text-brown-800 dark:text-brown-100 placeholder-brown-400/60">
+                <button onclick="signInWithEmail()" id="email-signin-btn" class="w-full btn-gold py-3.5 rounded-xl font-bold transition-all shadow-lg text-sm">Sign In</button>
+                <button onclick="signUpWithEmail()" id="email-signup-btn" class="w-full glass hover:bg-brown-400/10 text-brown-400 dark:text-brown-200 py-3.5 rounded-xl font-semibold transition-all border border-brown-400/30 text-sm">Create New Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="student-dashboard" class="hidden" dir="ltr">
+    <header class="glass sticky top-0 z-40 border-b border-brown-400/20">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-brown-400 to-brown-600 rounded-xl flex items-center justify-center font-black text-white text-lg shadow-md">π</div>
+                <div>
+                    <h2 class="font-extrabold text-brown-400 text-base">Mr. Waleed Orban</h2>
+                    <p class="text-[10px] opacity-75">MathMaster Pro Platform</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4">
+                <select id="student-grade-select" onchange="changeGrade(this.value)" class="bg-brown-900/10 dark:bg-brown-900/80 text-brown-400 text-xs font-bold px-3 py-1.5 rounded-xl border border-brown-400/30 focus:outline-none cursor-pointer">
+                    <option class="bg-brown-900 text-white" value="prep1">Prep 1 (Middle School)</option>
+                    <option class="bg-brown-900 text-white" value="prep2">Prep 2 (Middle School)</option>
+                    <option class="bg-brown-900 text-white" value="prep3">Prep 3 (Middle School)</option>
+                    <option class="bg-brown-900 text-white" value="sec1">Senior 1 (High School)</option>
+                    <option class="bg-brown-900 text-white" value="sec2">Senior 2 (High School)</option>
+                </select>
+                <div class="hidden md:flex items-center gap-2 glass px-3 py-1.5 rounded-full border border-brown-400/30">
+                    <span class="text-amber-500">⭐</span>
+                    <span id="student-points" class="font-bold text-sm text-brown-400">0</span>
+                    <span class="text-[10px] opacity-75">Points</span>
+                </div>
+                <button onclick="logout()" class="text-rose-500 hover:text-rose-600 p-2 transition-colors" aria-label="Logout">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
+            <button onclick="switchStudentTab('dashboard')" class="student-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold btn-gold whitespace-nowrap transition-all" data-tab="dashboard">📊 Dashboard & Lessons</button>
+            <button onclick="switchStudentTab('pdfs')" class="student-nav-btn px-4 py-2.5 rounded-xl text-xs font-semibold glass text-brown-400 hover:bg-brown-400/10 whitespace-nowrap transition-all" data-tab="pdfs">📄 Handouts & PDFs</button>
+            <button onclick="switchStudentTab('forum')" class="student-nav-btn px-4 py-2.5 rounded-xl text-xs font-semibold glass text-brown-400 hover:bg-brown-400/10 whitespace-nowrap transition-all" data-tab="forum">💬 Ask Mr. Waleed</button>
+            <button onclick="switchStudentTab('calc')" class="student-nav-btn px-4 py-2.5 rounded-xl text-xs font-semibold glass text-brown-400 hover:bg-brown-400/10 whitespace-nowrap transition-all" data-tab="calc">🧮 Casio fx-991EX</button>
+        </div>
+
+        <div id="st-tab-dashboard" class="st-tab-content fade-in">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="glass-card rounded-2xl p-4 border-l-4 border-brown-400">
+                    <div class="text-2xl mb-1">📚</div>
+                    <div id="stat-lessons" class="text-2xl font-bold text-brown-400">0</div>
+                    <div class="text-[11px] opacity-75">Completed Lessons</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 border-l-4 border-amber-500">
+                    <div class="text-2xl mb-1">📝</div>
+                    <div id="stat-exams" class="text-2xl font-bold text-brown-400">0</div>
+                    <div class="text-[11px] opacity-75">Completed Exams</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-500">
+                    <div class="text-2xl mb-1">🎯</div>
+                    <div id="stat-progress" class="text-2xl font-bold text-brown-400">0%</div>
+                    <div class="text-[11px] opacity-75">Achievement Rate</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 border-l-4 border-indigo-500">
+                    <div class="text-2xl mb-1">🏆</div>
+                    <div id="stat-rank" class="text-2xl font-bold text-brown-400">#1</div>
+                    <div class="text-[11px] opacity-75">Student Rank</div>
+                </div>
+            </div>
+            <h3 class="font-bold text-lg mb-4 text-brown-400">📂 Active Chapters & Video Lessons</h3>
+            <div id="sections-grid" class="grid md:grid-cols-3 gap-5 mb-8"></div>
+            <h3 class="font-bold text-lg mb-4 text-brown-400">📝 Active Mathematics Exams</h3>
+            <div id="exams-list" class="space-y-4"></div>
+        </div>
+
+        <div id="st-tab-pdfs" class="st-tab-content hidden fade-in">
+            <h3 class="font-bold text-xl mb-4 text-brown-400">📄 Handouts & Study Booklets</h3>
+            <div id="student-pdf-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div id="st-tab-forum" class="st-tab-content hidden fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-xl text-brown-400">💬 Discussion Forum</h3>
+                <button onclick="showAskQuestionModal()" class="btn-gold px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg hover:scale-105 transition-transform">+ Ask a New Question</button>
+            </div>
+            <div id="forum-questions-list" class="space-y-4"></div>
+        </div>
+
+        <div id="st-tab-calc" class="st-tab-content hidden fade-in">
+            <div class="max-w-md mx-auto glass rounded-3xl p-6 border border-brown-400/30 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-brown-400">CASIO fx-991EX CLASSWIZ</span>
+                        <button onclick="toggleCalcAngleMode()" class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded font-black cursor-pointer uppercase transition-all hover:bg-amber-500/30" id="calc-mode-indicator">DEG</button>
+                    </div>
+                    <span class="text-[10px] bg-brown-900/40 text-brown-300 px-2 py-0.5 rounded">SOLAR SYSTEM</span>
+                </div>
+                <div class="bg-black/90 p-4 rounded-xl mb-4 border border-brown-400/30 text-right font-mono">
+                    <div id="calc-screen-expr" class="text-brown-400/50 text-xs h-5 overflow-hidden tracking-wide"></div>
+                    <div id="calc-screen-val" class="text-3xl text-amber-400 font-bold overflow-x-auto select-all scrollbar-none py-1">0</div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-xs font-bold">
+                    <button onclick="calcOp('sin')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">sin</button>
+                    <button onclick="calcOp('cos')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">cos</button>
+                    <button onclick="calcOp('tan')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">tan</button>
+                    <button onclick="calcClear()" class="p-3 bg-rose-600/80 hover:bg-rose-500 text-white rounded-xl shadow-md transition-all active:scale-95">AC</button>
+                    <button onclick="calcOp('log')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">log</button>
+                    <button onclick="calcOp('ln')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">ln</button>
+                    <button onclick="calcOp('sqrt')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">√</button>
+                    <button onclick="calcInput('^')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">x^y</button>
+                    <button onclick="calcInput('(')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">(</button>
+                    <button onclick="calcInput(')')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">)</button>
+                    <button onclick="calcInput('π')" class="p-3 glass rounded-xl hover:bg-brown-400/20 text-brown-300 transition-all active:scale-95">π</button>
+                    <button onclick="calcInput('/')" class="p-3 bg-brown-600/40 hover:bg-brown-600/60 rounded-xl text-amber-400 transition-all active:scale-95">÷</button>
+                    <button onclick="calcInput('7')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">7</button>
+                    <button onclick="calcInput('8')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">8</button>
+                    <button onclick="calcInput('9')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">9</button>
+                    <button onclick="calcInput('*')" class="p-3 bg-brown-600/40 hover:bg-brown-600/60 rounded-xl text-amber-400 transition-all active:scale-95">×</button>
+                    <button onclick="calcInput('4')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">4</button>
+                    <button onclick="calcInput('5')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">5</button>
+                    <button onclick="calcInput('6')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">6</button>
+                    <button onclick="calcInput('-')" class="p-3 bg-brown-600/40 hover:bg-brown-600/60 rounded-xl text-amber-400 transition-all active:scale-95">-</button>
+                    <button onclick="calcInput('1')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">1</button>
+                    <button onclick="calcInput('2')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">2</button>
+                    <button onclick="calcInput('3')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">3</button>
+                    <button onclick="calcInput('+')" class="p-3 bg-brown-600/40 hover:bg-brown-600/60 rounded-xl text-amber-400 transition-all active:scale-95">+</button>
+                    <button onclick="calcInput('0')" class="p-3 glass rounded-xl hover:bg-brown-400/20 col-span-2 transition-all active:scale-95">0</button>
+                    <button onclick="calcInput('.')" class="p-3 glass rounded-xl hover:bg-brown-400/20 transition-all active:scale-95">.</button>
+                    <button onclick="calcEval()" class="p-3 btn-gold rounded-xl font-bold shadow-md transition-all active:scale-95">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="teacher-dashboard" class="hidden" dir="rtl">
+    <header class="glass sticky top-0 z-40 border-b border-brown-400/20">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-brown-600 rounded-xl flex items-center justify-center font-bold text-white shadow-md">👨‍🏫</div>
+                <div>
+                    <h2 class="font-extrabold text-brown-400">لوحة تحكم المعلّم والآدمن</h2>
+                    <p class="text-[10px] opacity-75">Mr. Waleed Orban - Admin</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
+                <button onclick="switchTeacherTab('students')" class="teacher-tab px-3 py-1.5 rounded-lg btn-gold text-xs font-semibold whitespace-nowrap transition-all" data-tab="students">الطلاب</button>
+                <button onclick="switchTeacherTab('exams')" class="teacher-tab px-3 py-1.5 rounded-lg glass text-xs text-brown-400 whitespace-nowrap transition-all hover:bg-brown-400/10" data-tab="exams">الامتحانات وباني الاختيارات</button>
+                <button onclick="switchTeacherTab('sections')" class="teacher-tab px-3 py-1.5 rounded-lg glass text-xs text-brown-400 whitespace-nowrap transition-all hover:bg-brown-400/10" data-tab="sections">الأبواب والدروس</button>
+                <button onclick="switchTeacherTab('pdfs')" class="teacher-tab px-3 py-1.5 rounded-lg glass text-xs text-brown-400 whitespace-nowrap transition-all hover:bg-brown-400/10" data-tab="pdfs">الملازم/PDF</button>
+                <button onclick="switchTeacherTab('forum')" class="teacher-tab px-3 py-1.5 rounded-lg glass text-xs text-brown-400 whitespace-nowrap transition-all hover:bg-brown-400/10" data-tab="forum">الأسئلة المعلقة</button>
+                <button onclick="logout()" class="text-rose-500 hover:text-rose-600 p-2 transition-colors" aria-label="Logout"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></button>
+            </div>
+        </div>
+    </header>
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div id="teacher-tab-students" class="teacher-panel fade-in">
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-brown-400/20 flex items-center justify-between">
+                    <h3 class="font-bold text-brown-400">👥 الطلاب المسجلون بالنظام</h3>
+                    <span id="student-count-badge" class="text-xs bg-brown-400/20 text-brown-400 px-2 py-1 rounded-full">0</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-brown-900/20 text-brown-400 text-xs">
+                            <tr><th class="text-right px-4 py-3">اسم الطالب</th><th class="text-right px-4 py-3">البريد</th><th class="text-right px-4 py-3">الصف</th><th class="text-right px-4 py-3">النقاط</th></tr>
+                        </thead>
+                        <tbody id="teacher-students-table" class="divide-y divide-brown-400/10"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="teacher-tab-exams" class="teacher-panel hidden fade-in">
+            <div class="glass p-6 rounded-3xl border border-brown-400/30 mb-6">
+                <h3 class="font-bold text-lg text-brown-400 mb-4">✨ باني الامتحانات التفاعلي الجديد</h3>
+                <div class="grid md:grid-cols-3 gap-4 mb-4">
+                    <input type="text" id="new-exam-title" placeholder="عنوان الامتحان (مثال: اختبار التفاضل)" class="bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50">
+                    <input type="number" id="new-exam-duration" placeholder="مدة الامتحان بالدقائق (مثال: 30)" min="1" max="180" class="bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50">
+                    <select id="new-exam-grade" class="bg-brown-900/20 text-brown-400 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 cursor-pointer">
+                        <option value="sec2" class="bg-brown-900 text-white">الصف الثاني الثانوي</option>
+                        <option value="sec1" class="bg-brown-900 text-white">الصف الأول الثانوي</option>
+                        <option value="prep3" class="bg-brown-900 text-white">الصف الثالث الإعدادي</option>
+                        <option value="prep2" class="bg-brown-900 text-white">الصف الثاني الإعدادي</option>
+                        <option value="prep1" class="bg-brown-900 text-white">الصف الأول الإعدادي</option>
+                    </select>
+                </div>
+                <div id="builder-questions-container" class="space-y-4 mb-4"></div>
+                <div class="flex gap-3 flex-wrap">
+                    <button onclick="addQuestionToBuilder()" class="glass border border-brown-400/40 text-brown-400 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-brown-400/10 transition-all">+ إضافة سؤال جديد</button>
+                    <button onclick="saveExamToFirestore()" id="save-exam-btn" class="btn-gold px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">حفظ الامتحان ونشره فوراً</button>
+                </div>
+            </div>
+            <div id="teacher-exams-grid" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+        <div id="teacher-tab-sections" class="teacher-panel hidden fade-in">
+            <div class="glass p-6 rounded-3xl border border-brown-400/30 mb-6">
+                <h3 class="font-bold text-lg text-brown-400 mb-4">📚 إضافة باب/درس دراسي جديد</h3>
+                <div class="space-y-3">
+                    <input type="text" id="new-section-title" placeholder="عنوان الباب/الدرس" class="w-full bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50">
+                    <textarea id="new-section-content" placeholder="محتوى الدرس والروابط والشروحات..." class="w-full h-28 bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50 resize-none"></textarea>
+                    <select id="new-section-grade" class="w-full bg-brown-900/20 text-brown-400 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 cursor-pointer">
+                        <option value="sec2" class="bg-brown-900 text-white">الصف الثاني الثانوي</option>
+                        <option value="sec1" class="bg-brown-900 text-white">الصف الأول الثانوي</option>
+                        <option value="prep3" class="bg-brown-900 text-white">الصف الثالث الإعدادي</option>
+                        <option value="prep2" class="bg-brown-900 text-white">الصف الثاني الإعدادي</option>
+                        <option value="prep1" class="bg-brown-900 text-white">الصف الأول الإعدادي</option>
+                    </select>
+                    <button onclick="saveSection()" id="save-section-btn" class="btn-gold px-6 py-2.5 rounded-xl text-xs font-bold">نشر الدرس للطلاب</button>
+                </div>
+            </div>
+            <div id="teacher-sections-grid" class="grid md:grid-cols-3 gap-4"></div>
+        </div>
+        <div id="teacher-tab-pdfs" class="teacher-panel hidden fade-in">
+            <div class="glass p-6 rounded-3xl border border-brown-400/30 mb-6">
+                <h3 class="font-bold text-lg text-brown-400 mb-4">📄 نشر مذكرات وملفات PDF</h3>
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" id="pdf-title-input" placeholder="اسم الملزمة / المذكرة" class="bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50">
+                    <input type="text" id="pdf-url-input" placeholder="رابط Drive أو Dropbox أو PDF Direct Link" class="bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50">
+                </div>
+                <select id="pdf-grade-select" class="w-full md:w-auto bg-brown-900/20 text-brown-400 border border-brown-400/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brown-400 mb-4 cursor-pointer">
+                    <option value="sec2" class="bg-brown-900 text-white">الصف الثاني الثانوي</option>
+                    <option value="sec1" class="bg-brown-900 text-white">الصف الأول الثانوي</option>
+                    <option value="prep3" class="bg-brown-900 text-white">الصف الثالث الإعدادي</option>
+                    <option value="prep2" class="bg-brown-900 text-white">الصف الثاني الإعدادي</option>
+                    <option value="prep1" class="bg-brown-900 text-white">الصف الأول الإعدادي</option>
+                </select>
+                <button onclick="savePdfMaterial()" id="save-pdf-btn" class="btn-gold px-6 py-2.5 rounded-xl text-xs font-bold block">إضافة الملزمة</button>
+            </div>
+            <div id="teacher-pdf-grid" class="grid md:grid-cols-2 gap-4"></div>
+        </div>
+        <div id="teacher-tab-forum" class="teacher-panel hidden fade-in">
+            <h3 class="font-bold text-lg mb-4 text-brown-400">💬 الأسئلة بانتظار موافقة واعتماد الأستاذ</h3>
+            <div id="teacher-pending-questions" class="space-y-4"></div>
+        </div>
+    </div>
+</div>
+
+<div id="lesson-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-hidden modal-overlay">
+    <div class="glass rounded-3xl max-w-2xl w-full p-6 md:p-8 border border-brown-400/30 shadow-2xl modal-content">
+        <h3 id="lesson-modal-title" class="font-bold text-2xl text-brown-400 mb-4 border-b border-brown-400/20 pb-3">Lesson Details</h3>
+        <div id="lesson-modal-body" class="text-sm leading-relaxed text-brown-300 dark:text-brown-100 max-h-[50vh] overflow-y-auto mb-6 whitespace-pre-wrap font-sans"></div>
+        <div class="flex justify-end">
+            <button onclick="closeModal('lesson-modal')" class="btn-gold px-6 py-2.5 rounded-xl text-xs font-bold shadow-md">Close Lesson</button>
+        </div>
+    </div>
+</div>
+
+<div id="take-exam-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto modal-hidden modal-overlay">
+    <div class="glass rounded-3xl max-w-3xl w-full p-6 md:p-8 my-6 border border-brown-400/30 modal-content">
+        <div class="flex items-center justify-between border-b border-brown-400/20 pb-4 mb-6 flex-wrap gap-2">
+            <div>
+                <h2 id="take-exam-title" class="text-xl font-bold text-brown-400">Interactive Exam</h2>
+                <p class="text-xs opacity-75 mt-1">Total Score: <span id="take-exam-max-score" class="font-bold text-brown-400">0</span></p>
+            </div>
+            <div class="bg-rose-500/20 border border-rose-500/40 text-rose-300 px-4 py-2 rounded-2xl flex items-center gap-2">
+                <span class="animate-pulse">⏱️</span>
+                <span id="exam-timer" class="font-mono font-bold text-lg">00:00</span>
+            </div>
+        </div>
+        <div id="take-exam-body" class="space-y-6 max-h-[60vh] overflow-y-auto pl-2" dir="ltr"></div>
+        <div id="take-exam-result" class="hidden my-4 p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-center">
+            <h3 class="text-lg font-bold text-emerald-300 mb-1">🎉 Exam Submitted Successfully!</h3>
+            <p class="text-sm">Your Score: <span id="exam-score-display" class="font-extrabold text-white text-xl">0 / 0</span></p>
+        </div>
+        <div class="mt-6 pt-4 border-t border-brown-400/20 flex justify-end gap-3">
+            <button id="submit-exam-btn" onclick="submitExamAnswers()" class="w-full btn-gold py-3 rounded-xl text-sm font-extrabold shadow-lg">Submit Exam</button>
+            <button id="close-exam-btn" onclick="closeModal('take-exam-modal')" class="hidden w-full glass hover:bg-brown-400/10 py-3 rounded-xl text-sm font-bold">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="ask-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 modal-hidden modal-overlay">
+    <div class="glass rounded-3xl max-w-lg w-full p-6 border border-brown-400/30 modal-content">
+        <h3 class="font-bold text-lg text-brown-400 mb-4">Ask Mr. Waleed</h3>
+        <textarea id="question-text-input" placeholder="Type your math problem or ask for clarification here..." class="w-full h-32 bg-brown-900/20 border border-brown-400/30 rounded-xl p-3 text-sm focus:outline-none focus:border-brown-400 mb-3 text-brown-800 dark:text-brown-100 placeholder-brown-400/50 resize-none"></textarea>
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-brown-400 mb-2">Attach Photo or Document (Optional):</label>
+            <input type="file" id="question-file-input" accept="image/*,.pdf" class="w-full text-xs text-brown-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brown-400 file:text-white hover:file:bg-brown-500 cursor-pointer transition-colors">
+        </div>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeModal('ask-modal')" class="px-4 py-2 glass rounded-xl text-xs font-semibold hover:bg-brown-400/10 transition-all">Cancel</button>
+            <button id="submit-question-btn" onclick="submitQuestion()" class="px-5 py-2 btn-gold rounded-xl text-xs font-bold">Submit Question</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===================== FIREBASE CONFIG =====================
+const firebaseConfig = {
+    apiKey: "AIzaSyAL4eH7bPwJ07tPoECrPOdgolsQHLBoaJ0",
+    authDomain: "math-platform00.firebaseapp.com",
+    projectId: "math-platform00",
+    storageBucket: "math-platform00.firebasestorage.app",
+    messagingSenderId: "642584820193",
+    appId: "1:642584820193:web:82ea2537e592c046553aa0"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+const ADMIN_EMAIL = "taraiefwagaieb3090@gmail.com";
+
+// ===================== STATE =====================
+let currentUser = null;
+let currentStudentData = { grade: 'sec2', points: 0, completedLessons: [], takenExams: {} };
+let currentExamTimer = null;
+let currentExamQuestions = [];
+let currentExamDocId = null;
+let currentExamDuration = 0;
+let builderQuestions = [];
+let calcExpression = '';
+let calcAngleMode = 'DEG';
+let calcLastResult = 0;
+
+// ===================== THEME =====================
+function toggleTheme() {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+    } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+
+// ===================== TOAST NOTIFICATIONS =====================
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// ===================== LOADING STATES =====================
+function setButtonLoading(btnId, loading = true, originalText = '') {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (loading) {
+        btn.dataset.originalText = btn.dataset.originalText || btn.innerHTML;
+        btn.innerHTML = '<span class="spinner"></span>Loading...';
+        btn.disabled = true;
+    } else {
+        btn.innerHTML = btn.dataset.originalText || originalText;
+        btn.disabled = false;
+    }
+}
+
+// ===================== AUTH STATE =====================
+auth.onAuthStateChanged(async (user) => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => loadingScreen.classList.add('hidden'), 500);
+    }
+    if (user) {
+        currentUser = user;
+        try {
+            if (user.email === ADMIN_EMAIL) {
+                showScreen('teacher-dashboard');
+                loadTeacherDashboardData();
+            } else {
+                await loadStudentData(user.uid);
+                showScreen('student-dashboard');
+                loadStudentDashboardData();
+            }
+        } catch (err) {
+            console.error('Auth state error:', err);
+            showToast('Error loading dashboard. Please refresh.', 'error');
+        }
+    } else {
+        showScreen('login-screen');
+    }
+});
+
+function showScreen(screenId) {
+    ['login-screen', 'student-dashboard', 'teacher-dashboard'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('fade-in');
+    }
+}
+
+// ===================== STUDENT DATA =====================
+async function loadStudentData(uid) {
+    const docRef = db.collection('students').doc(uid);
+    const doc = await docRef.get();
+    if (doc.exists) {
+        currentStudentData = { ...currentStudentData, ...doc.data() };
+    } else {
+        const newData = {
+            uid: uid,
+            email: currentUser.email,
+            name: currentUser.displayName || currentUser.email.split('@')[0],
+            grade: 'sec2',
+            points: 0,
+            completedLessons: [],
+            takenExams: {},
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await docRef.set(newData);
+        currentStudentData = newData;
+    }
+    const gradeSelect = document.getElementById('student-grade-select');
+    if (gradeSelect) gradeSelect.value = currentStudentData.grade;
+}
+
+async function saveStudentData() {
+    if (!currentUser) return;
+    await db.collection('students').doc(currentUser.uid).update(currentStudentData);
+}
+
+// ===================== AUTH FUNCTIONS =====================
+async function signInWithGoogle() {
+    setButtonLoading('google-signin-btn', true);
+    try {
+        await auth.signInWithPopup(googleProvider);
+        showToast('Welcome back!', 'success');
+    } catch (err) {
+        showLoginError(err.message);
+    } finally {
+        setButtonLoading('google-signin-btn', false);
+    }
+}
+
+async function signInWithEmail() {
+    const email = document.getElementById('email-input').value.trim();
+    const password = document.getElementById('password-input').value;
+    if (!email || !password) { showLoginError('Please enter both email and password.'); return; }
+    setButtonLoading('email-signin-btn', true);
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        showToast('Signed in successfully!', 'success');
+    } catch (err) {
+        showLoginError(err.message);
+    } finally {
+        setButtonLoading('email-signin-btn', false);
+    }
+}
+
+async function signUpWithEmail() {
+    const email = document.getElementById('email-input').value.trim();
+    const password = document.getElementById('password-input').value;
+    if (!email || !password) { showLoginError('Please enter both email and password.'); return; }
+    if (password.length < 6) { showLoginError('Password must be at least 6 characters.'); return; }
+    setButtonLoading('email-signup-btn', true);
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        showToast('Account created successfully!', 'success');
+    } catch (err) {
+        showLoginError(err.message);
+    } finally {
+        setButtonLoading('email-signup-btn', false);
+    }
+}
+
+function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+    setTimeout(() => { if (el) el.classList.add('hidden'); }, 5000);
+}
+
+async function logout() {
+    try {
+        await auth.signOut();
+        currentUser = null;
+        currentStudentData = { grade: 'sec2', points: 0, completedLessons: [], takenExams: {} };
+        showToast('Logged out successfully', 'info');
+    } catch (err) {
+        showToast('Error logging out', 'error');
+    }
+}
+
+// ===================== STUDENT TABS =====================
+function switchStudentTab(tab) {
+    document.querySelectorAll('.st-tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.student-nav-btn').forEach(btn => {
+        btn.classList.remove('btn-gold', 'nav-btn-active');
+        btn.classList.add('glass', 'text-brown-400');
+    });
+    const target = document.getElementById('st-tab-' + tab);
+    if (target) { target.classList.remove('hidden'); target.classList.add('fade-in'); }
+    const activeBtn = document.querySelector('.student-nav-btn[data-tab="' + tab + '"]');
+    if (activeBtn) {
+        activeBtn.classList.remove('glass', 'text-brown-400');
+        activeBtn.classList.add('btn-gold', 'nav-btn-active');
+    }
+    if (tab === 'dashboard') loadStudentDashboardData();
+    if (tab === 'pdfs') loadStudentPdfs();
+    if (tab === 'forum') loadStudentForum();
+}
+
+async function changeGrade(grade) {
+    currentStudentData.grade = grade;
+    await saveStudentData();
+    loadStudentDashboardData();
+    showToast('Grade changed to ' + grade.toUpperCase(), 'info');
+}
+
+// ===================== STUDENT DASHBOARD DATA =====================
+async function loadStudentDashboardData() {
+    if (!currentUser) return;
+    const grade = currentStudentData.grade;
+    document.getElementById('student-points').textContent = currentStudentData.points || 0;
+    document.getElementById('stat-lessons').textContent = (currentStudentData.completedLessons || []).length;
+    const takenExams = Object.keys(currentStudentData.takenExams || {}).length;
+    document.getElementById('stat-exams').textContent = takenExams;
+    document.getElementById('stat-progress').textContent = Math.min(100, Math.round((takenExams * 10) + (currentStudentData.points / 10))) + '%';
+
+    // Load sections
+    const sectionsGrid = document.getElementById('sections-grid');
+    sectionsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-brown-400/50 shimmer rounded-2xl h-32"></div>';
+    try {
+        const snapshot = await db.collection('sections').where('grade', '==', grade).orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            sectionsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-brown-400/50">No lessons available for this grade yet.</div>';
+        } else {
+            sectionsGrid.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5 cursor-pointer" onclick="openLesson('${doc.id}', '${escapeHtml(data.title)}')">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-bold text-brown-400">${escapeHtml(data.title)}</h4>
+                        <span class="text-xl">📖</span>
+                    </div>
+                    <p class="text-xs opacity-75 line-clamp-2">${escapeHtml(data.content?.substring(0, 120) || 'No description')}...</p>
+                    <div class="mt-3 flex items-center gap-2 text-[10px] text-brown-400/60">
+                        <span>📅 ${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : 'Recently'}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        sectionsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400">Error loading lessons.</div>';
+    }
+
+    // Load exams
+    const examsList = document.getElementById('exams-list');
+    examsList.innerHTML = '<div class="text-center py-8 text-brown-400/50 shimmer rounded-2xl h-24"></div>';
+    try {
+        const snapshot = await db.collection('exams').where('grade', '==', grade).orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            examsList.innerHTML = '<div class="text-center py-8 text-brown-400/50">No exams available for this grade yet.</div>';
+        } else {
+            examsList.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const taken = currentStudentData.takenExams?.[doc.id];
+                return `<div class="glass-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <h4 class="font-bold text-brown-400">${escapeHtml(data.title)}</h4>
+                            <p class="text-xs opacity-75 mt-1">⏱️ ${data.duration || 30} min • ${(data.questions || []).length} questions</p>
+                        </div>
+                        ${taken ? 
+                            `<span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold">✓ Completed (${taken.score}/${taken.maxScore})</span>` :
+                            `<button onclick="startExam('${doc.id}')" class="btn-gold px-4 py-2 rounded-xl text-xs font-bold">Start Exam</button>`
+                        }
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        examsList.innerHTML = '<div class="text-center py-8 text-rose-400">Error loading exams.</div>';
+    }
+}
+
+function openLesson(id, title) {
+    db.collection('sections').doc(id).get().then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            document.getElementById('lesson-modal-title').textContent = data.title || 'Lesson Details';
+            document.getElementById('lesson-modal-body').textContent = data.content || 'No content available.';
+            openModal('lesson-modal');
+            if (!currentStudentData.completedLessons.includes(id)) {
+                currentStudentData.completedLessons.push(id);
+                currentStudentData.points += 10;
+                saveStudentData();
+                document.getElementById('stat-lessons').textContent = currentStudentData.completedLessons.length;
+                document.getElementById('student-points').textContent = currentStudentData.points;
+            }
+        }
+    });
+}
+
+// ===================== EXAM SYSTEM =====================
+async function startExam(examId) {
+    try {
+        const doc = await db.collection('exams').doc(examId).get();
+        if (!doc.exists) { showToast('Exam not found.', 'error'); return; }
+        const data = doc.data();
+        currentExamDocId = examId;
+        currentExamQuestions = data.questions || [];
+        currentExamDuration = (data.duration || 30) * 60;
+
+        document.getElementById('take-exam-title').textContent = data.title || 'Interactive Exam';
+        const maxScore = currentExamQuestions.reduce((sum, q) => sum + (q.points || 1), 0);
+        document.getElementById('take-exam-max-score').textContent = maxScore;
+        document.getElementById('take-exam-result').classList.add('hidden');
+        document.getElementById('submit-exam-btn').classList.remove('hidden');
+        document.getElementById('close-exam-btn').classList.add('hidden');
+
+        const body = document.getElementById('take-exam-body');
+        body.innerHTML = currentExamQuestions.map((q, i) => {
+            const opts = (q.options || []).map((opt, j) => `
+                <div class="flex items-center gap-2">
+                    <input type="radio" name="q_${i}" id="q_${i}_o_${j}" value="${j}" class="exam-option hidden">
+                    <label for="q_${i}_o_${j}" class="flex-1 p-3 glass rounded-xl border border-brown-400/20 cursor-pointer hover:border-brown-400/40 transition-all text-sm">
+                        <span class="font-bold text-brown-400 mr-2">${String.fromCharCode(65 + j)}.</span>${escapeHtml(opt)}
+                    </label>
+                </div>
+            `).join('');
+            return `
+                <div class="glass-card rounded-2xl p-5">
+                    <div class="flex items-start gap-3">
+                        <span class="bg-brown-400 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0">${i + 1}</span>
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm mb-3">${escapeHtml(q.question)}</p>
+                            <div class="space-y-2">${opts}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        openModal('take-exam-modal');
+        startExamTimer();
+    } catch (err) {
+        showToast('Error loading exam.', 'error');
+    }
+}
+
+function startExamTimer() {
+    if (currentExamTimer) clearInterval(currentExamTimer);
+    let remaining = currentExamDuration;
+    const timerEl = document.getElementById('exam-timer');
+    currentExamTimer = setInterval(() => {
+        remaining--;
+        const mins = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const secs = (remaining % 60).toString().padStart(2, '0');
+        timerEl.textContent = `${mins}:${secs}`;
+        if (remaining <= 0) {
+            clearInterval(currentExamTimer);
+            submitExamAnswers();
+            showToast('Time is up! Exam auto-submitted.', 'info');
+        }
+    }, 1000);
+}
+
+function submitExamAnswers() {
+    if (currentExamTimer) clearInterval(currentExamTimer);
+    let score = 0;
+    let maxScore = 0;
+    currentExamQuestions.forEach((q, i) => {
+        maxScore += (q.points || 1);
+        const selected = document.querySelector(`input[name="q_${i}"]:checked`);
+        if (selected && parseInt(selected.value) === (q.correctIndex || 0)) {
+            score += (q.points || 1);
+        }
+    });
+
+    currentStudentData.takenExams[currentExamDocId] = { score, maxScore, submittedAt: new Date().toISOString() };
+    currentStudentData.points += Math.round(score * 5);
+    saveStudentData();
+
+    document.getElementById('exam-score-display').textContent = `${score} / ${maxScore}`;
+    document.getElementById('take-exam-result').classList.remove('hidden');
+    document.getElementById('submit-exam-btn').classList.add('hidden');
+    document.getElementById('close-exam-btn').classList.remove('hidden');
+    showToast(`Exam submitted! Score: ${score}/${maxScore}`, 'success');
+}
+
+// ===================== PDF SYSTEM =====================
+async function loadStudentPdfs() {
+    const grid = document.getElementById('student-pdf-grid');
+    grid.innerHTML = '<div class="col-span-full text-center py-8 shimmer rounded-2xl h-32"></div>';
+    try {
+        const snapshot = await db.collection('pdfs').where('grade', '==', currentStudentData.grade).orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            grid.innerHTML = '<div class="col-span-full text-center py-8 text-brown-400/50">No handouts available yet.</div>';
+        } else {
+            grid.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-brown-400/20 rounded-xl flex items-center justify-center text-brown-400 text-lg">📄</div>
+                        <div>
+                            <h4 class="font-bold text-brown-400 text-sm">${escapeHtml(data.title)}</h4>
+                            <p class="text-[10px] opacity-60">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : 'Recently'}</p>
+                        </div>
+                    </div>
+                    <a href="${escapeHtml(data.url)}" target="_blank" class="w-full block text-center btn-gold py-2 rounded-xl text-xs font-bold">Open PDF</a>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400">Error loading PDFs.</div>';
+    }
+}
+
+// ===================== FORUM SYSTEM =====================
+async function loadStudentForum() {
+    const list = document.getElementById('forum-questions-list');
+    list.innerHTML = '<div class="text-center py-8 shimmer rounded-2xl h-24"></div>';
+    try {
+        const snapshot = await db.collection('questions').where('studentId', '==', currentUser.uid).orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            list.innerHTML = '<div class="text-center py-8 text-brown-400/50">No questions asked yet. Ask your first question!</div>';
+        } else {
+            list.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-brown-400/20 rounded-full flex items-center justify-center text-brown-400 text-sm shrink-0">❓</div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">${escapeHtml(data.text)}</p>
+                            ${data.fileUrl ? `<a href="${escapeHtml(data.fileUrl)}" target="_blank" class="text-xs text-brown-400 underline mt-1 inline-block">📎 View Attachment</a>` : ''}
+                            <div class="mt-2 flex items-center gap-2">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full ${data.answered ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${data.answered ? '✓ Answered' : '⏳ Pending'}</span>
+                                <span class="text-[10px] opacity-50">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : ''}</span>
+                            </div>
+                            ${data.answer ? `<div class="mt-3 p-3 bg-brown-400/10 rounded-xl text-sm border-l-2 border-brown-400">${escapeHtml(data.answer)}</div>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        list.innerHTML = '<div class="text-center py-8 text-rose-400">Error loading questions.</div>';
+    }
+}
+
+function showAskQuestionModal() {
+    document.getElementById('question-text-input').value = '';
+    document.getElementById('question-file-input').value = '';
+    openModal('ask-modal');
+}
+
+async function submitQuestion() {
+    const text = document.getElementById('question-text-input').value.trim();
+    if (!text) { showToast('Please type your question.', 'error'); return; }
+    const btn = document.getElementById('submit-question-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    try {
+        let fileUrl = '';
+        const fileInput = document.getElementById('question-file-input');
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const ref = storage.ref('questions/' + Date.now() + '_' + file.name);
+            await ref.put(file);
+            fileUrl = await ref.getDownloadURL();
+        }
+        await db.collection('questions').add({
+            studentId: currentUser.uid,
+            studentName: currentUser.displayName || currentUser.email.split('@')[0],
+            text: text,
+            fileUrl: fileUrl,
+            answered: false,
+            answer: '',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        closeModal('ask-modal');
+        showToast('Question submitted successfully!', 'success');
+        loadStudentForum();
+    } catch (err) {
+        showToast('Error submitting question.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Question';
+    }
+}
+
+// ===================== CALCULATOR =====================
+function calcInput(val) {
+    if (calcExpression === 'Error') calcExpression = '';
+    calcExpression += val;
+    updateCalcDisplay();
+}
+
+function calcOp(op) {
+    if (calcExpression === 'Error') calcExpression = '';
+    const ops = { sin: 'sin(', cos: 'cos(', tan: 'tan(', log: 'log10(', ln: 'log(', sqrt: 'sqrt(' };
+    calcExpression += (ops[op] || op);
+    updateCalcDisplay();
+}
+
+function calcClear() {
+    calcExpression = '';
+    calcLastResult = 0;
+    updateCalcDisplay();
+}
+
+function toggleCalcAngleMode() {
+    calcAngleMode = calcAngleMode === 'DEG' ? 'RAD' : 'DEG';
+    document.getElementById('calc-mode-indicator').textContent = calcAngleMode;
+}
+
+function updateCalcDisplay() {
+    document.getElementById('calc-screen-expr').textContent = calcExpression || '';
+    document.getElementById('calc-screen-val').textContent = calcExpression ? '...' : '0';
+}
+
+function calcEval() {
+    if (!calcExpression) return;
+    try {
+        let expr = calcExpression
+            .replace(/×/g, '*').replace(/÷/g, '/').replace(/π/g, 'Math.PI')
+            .replace(/\^/g, '**');
+
+        // Safe function replacements
+        expr = expr.replace(/sin\(/g, 'safeSin(').replace(/cos\(/g, 'safeCos(').replace(/tan\(/g, 'safeTan(')
+                   .replace(/log10\(/g, 'safeLog10(').replace(/log\(/g, 'safeLn(').replace(/sqrt\(/g, 'safeSqrt(');
+
+        const safeSin = (x) => Math.sin(calcAngleMode === 'DEG' ? x * Math.PI / 180 : x);
+        const safeCos = (x) => Math.cos(calcAngleMode === 'DEG' ? x * Math.PI / 180 : x);
+        const safeTan = (x) => Math.tan(calcAngleMode === 'DEG' ? x * Math.PI / 180 : x);
+        const safeLog10 = (x) => Math.log10(x);
+        const safeLn = (x) => Math.log(x);
+        const safeSqrt = (x) => Math.sqrt(x);
+
+        const result = new Function('safeSin', 'safeCos', 'safeTan', 'safeLog10', 'safeLn', 'safeSqrt', 'return ' + expr)(safeSin, safeCos, safeTan, safeLog10, safeLn, safeSqrt);
+
+        if (!isFinite(result) || isNaN(result)) throw new Error('Invalid');
+        const formatted = parseFloat(result.toFixed(10)).toString();
+        document.getElementById('calc-screen-val').textContent = formatted;
+        document.getElementById('calc-screen-expr').textContent = calcExpression + ' =';
+        calcLastResult = result;
+        calcExpression = formatted;
+    } catch (e) {
+        document.getElementById('calc-screen-val').textContent = 'Error';
+        calcExpression = 'Error';
+    }
+}
+
+// ===================== MODALS =====================
+function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('modal-hidden'); el.classList.add('modal-visible'); }
+}
+
+function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('modal-visible'); el.classList.add('modal-hidden'); }
+}
+
+// Close modal on overlay click
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('modal-visible')) {
+        closeModal(e.target.id);
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-visible').forEach(el => closeModal(el.id));
+    }
+});
+
+// ===================== TEACHER DASHBOARD =====================
+function switchTeacherTab(tab) {
+    document.querySelectorAll('.teacher-panel').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.teacher-tab').forEach(btn => {
+        btn.classList.remove('btn-gold', 'nav-btn-active');
+        btn.classList.add('glass', 'text-brown-400');
+    });
+    const target = document.getElementById('teacher-tab-' + tab);
+    if (target) { target.classList.remove('hidden'); target.classList.add('fade-in'); }
+    const activeBtn = document.querySelector('.teacher-tab[data-tab="' + tab + '"]');
+    if (activeBtn) {
+        activeBtn.classList.remove('glass', 'text-brown-400');
+        activeBtn.classList.add('btn-gold', 'nav-btn-active');
+    }
+    if (tab === 'students') loadTeacherStudents();
+    if (tab === 'exams') loadTeacherExams();
+    if (tab === 'sections') loadTeacherSections();
+    if (tab === 'pdfs') loadTeacherPdfs();
+    if (tab === 'forum') loadTeacherForum();
+}
+
+function loadTeacherDashboardData() {
+    switchTeacherTab('students');
+}
+
+async function loadTeacherStudents() {
+    const tbody = document.getElementById('teacher-students-table');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 shimmer rounded-2xl"></td></tr>';
+    try {
+        const snapshot = await db.collection('students').orderBy('points', 'desc').get();
+        document.getElementById('student-count-badge').textContent = snapshot.size;
+        if (snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-brown-400/50">No students registered yet.</td></tr>';
+        } else {
+            tbody.innerHTML = snapshot.docs.map((doc, i) => {
+                const data = doc.data();
+                return `<tr class="hover:bg-brown-400/5 transition-colors">
+                    <td class="px-4 py-3 font-medium">${escapeHtml(data.name || 'Unknown')}</td>
+                    <td class="px-4 py-3 text-xs opacity-70">${escapeHtml(data.email || '')}</td>
+                    <td class="px-4 py-3"><span class="bg-brown-400/20 text-brown-400 px-2 py-0.5 rounded text-[10px] font-bold">${data.grade?.toUpperCase() || 'N/A'}</span></td>
+                    <td class="px-4 py-3 font-bold text-brown-400">${data.points || 0}</td>
+                </tr>`;
+            }).join('');
+        }
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-rose-400">Error loading students.</td></tr>';
+    }
+}
+
+// ===================== EXAM BUILDER =====================
+function addQuestionToBuilder() {
+    const idx = builderQuestions.length;
+    builderQuestions.push({ question: '', options: ['', '', '', ''], correctIndex: 0, points: 1 });
+    const container = document.getElementById('builder-questions-container');
+    const div = document.createElement('div');
+    div.className = 'glass-card rounded-2xl p-5 fade-in';
+    div.id = `builder-q-${idx}`;
+    div.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-brown-400">Question ${idx + 1}</span>
+            <button onclick="removeBuilderQuestion(${idx})" class="text-rose-400 hover:text-rose-500 text-xs">✕ Remove</button>
+        </div>
+        <input type="text" placeholder="Question text..." class="w-full bg-brown-900/20 border border-brown-400/30 rounded-xl px-4 py-2 text-sm mb-3 focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50" onchange="updateBuilderQuestion(${idx}, 'question', this.value)">
+        <div class="grid md:grid-cols-2 gap-2 mb-3">
+            ${[0,1,2,3].map(j => `
+                <div class="flex items-center gap-2">
+                    <input type="radio" name="correct_${idx}" value="${j}" ${j === 0 ? 'checked' : ''} onchange="updateBuilderQuestion(${idx}, 'correctIndex', ${j})" class="accent-brown-400">
+                    <input type="text" placeholder="Option ${String.fromCharCode(65 + j)}" class="flex-1 bg-brown-900/20 border border-brown-400/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50" onchange="updateBuilderQuestion(${idx}, 'option', this.value, ${j})">
+                </div>
+            `).join('')}
+        </div>
+        <input type="number" min="1" max="10" value="1" placeholder="Points" class="w-24 bg-brown-900/20 border border-brown-400/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brown-400 text-white" onchange="updateBuilderQuestion(${idx}, 'points', parseInt(this.value) || 1)">
+    `;
+    container.appendChild(div);
+}
+
+function updateBuilderQuestion(idx, field, value, optIdx) {
+    if (!builderQuestions[idx]) return;
+    if (field === 'question') builderQuestions[idx].question = value;
+    if (field === 'correctIndex') builderQuestions[idx].correctIndex = value;
+    if (field === 'points') builderQuestions[idx].points = value;
+    if (field === 'option' && optIdx !== undefined) builderQuestions[idx].options[optIdx] = value;
+}
+
+function removeBuilderQuestion(idx) {
+    const el = document.getElementById(`builder-q-${idx}`);
+    if (el) el.remove();
+    builderQuestions[idx] = null;
+}
+
+async function saveExamToFirestore() {
+    const title = document.getElementById('new-exam-title').value.trim();
+    const duration = parseInt(document.getElementById('new-exam-duration').value) || 30;
+    const grade = document.getElementById('new-exam-grade').value;
+    const validQuestions = builderQuestions.filter(q => q && q.question.trim() && q.options.every(o => o.trim()));
+    if (!title) { showToast('Please enter an exam title.', 'error'); return; }
+    if (validQuestions.length === 0) { showToast('Please add at least one complete question.', 'error'); return; }
+
+    setButtonLoading('save-exam-btn', true);
+    try {
+        await db.collection('exams').add({
+            title: title,
+            duration: duration,
+            grade: grade,
+            questions: validQuestions,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: currentUser.uid
+        });
+        showToast('Exam published successfully!', 'success');
+        document.getElementById('new-exam-title').value = '';
+        document.getElementById('new-exam-duration').value = '';
+        document.getElementById('builder-questions-container').innerHTML = '';
+        builderQuestions = [];
+        loadTeacherExams();
+    } catch (err) {
+        showToast('Error saving exam.', 'error');
+    } finally {
+        setButtonLoading('save-exam-btn', false);
+    }
+}
+
+async function loadTeacherExams() {
+    const grid = document.getElementById('teacher-exams-grid');
+    grid.innerHTML = '<div class="col-span-full text-center py-8 shimmer rounded-2xl h-24"></div>';
+    try {
+        const snapshot = await db.collection('exams').orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            grid.innerHTML = '<div class="col-span-full text-center py-8 text-brown-400/50">No exams created yet.</div>';
+        } else {
+            grid.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-brown-400">${escapeHtml(data.title)}</h4>
+                            <p class="text-xs opacity-75 mt-1">${data.grade?.toUpperCase()} • ${data.duration} min • ${(data.questions || []).length} Qs</p>
+                        </div>
+                        <button onclick="deleteExam('${doc.id}')" class="text-rose-400 hover:text-rose-500 p-2">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400">Error loading exams.</div>';
+    }
+}
+
+async function deleteExam(id) {
+    if (!confirm('Delete this exam permanently?')) return;
+    try {
+        await db.collection('exams').doc(id).delete();
+        showToast('Exam deleted.', 'info');
+        loadTeacherExams();
+    } catch (err) {
+        showToast('Error deleting exam.', 'error');
+    }
+}
+
+// ===================== SECTIONS MANAGEMENT =====================
+async function saveSection() {
+    const title = document.getElementById('new-section-title').value.trim();
+    const content = document.getElementById('new-section-content').value.trim();
+    const grade = document.getElementById('new-section-grade').value;
+    if (!title || !content) { showToast('Please fill in all fields.', 'error'); return; }
+    setButtonLoading('save-section-btn', true);
+    try {
+        await db.collection('sections').add({
+            title: title,
+            content: content,
+            grade: grade,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Lesson published successfully!', 'success');
+        document.getElementById('new-section-title').value = '';
+        document.getElementById('new-section-content').value = '';
+        loadTeacherSections();
+    } catch (err) {
+        showToast('Error publishing lesson.', 'error');
+    } finally {
+        setButtonLoading('save-section-btn', false);
+    }
+}
+
+async function loadTeacherSections() {
+    const grid = document.getElementById('teacher-sections-grid');
+    grid.innerHTML = '<div class="col-span-full text-center py-8 shimmer rounded-2xl h-24"></div>';
+    try {
+        const snapshot = await db.collection('sections').orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            grid.innerHTML = '<div class="col-span-full text-center py-8 text-brown-400/50">No sections created yet.</div>';
+        } else {
+            grid.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5">
+                    <h4 class="font-bold text-brown-400 text-sm">${escapeHtml(data.title)}</h4>
+                    <p class="text-xs opacity-60 mt-1">${data.grade?.toUpperCase()}</p>
+                    <button onclick="deleteSection('${doc.id}')" class="mt-3 text-rose-400 hover:text-rose-500 text-xs">🗑️ Delete</button>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400">Error loading sections.</div>';
+    }
+}
+
+async function deleteSection(id) {
+    if (!confirm('Delete this section permanently?')) return;
+    try {
+        await db.collection('sections').doc(id).delete();
+        showToast('Section deleted.', 'info');
+        loadTeacherSections();
+    } catch (err) {
+        showToast('Error deleting section.', 'error');
+    }
+}
+
+// ===================== PDF MANAGEMENT =====================
+async function savePdfMaterial() {
+    const title = document.getElementById('pdf-title-input').value.trim();
+    const url = document.getElementById('pdf-url-input').value.trim();
+    const grade = document.getElementById('pdf-grade-select').value;
+    if (!title || !url) { showToast('Please fill in all fields.', 'error'); return; }
+    if (!url.startsWith('http')) { showToast('Please enter a valid URL.', 'error'); return; }
+    setButtonLoading('save-pdf-btn', true);
+    try {
+        await db.collection('pdfs').add({
+            title: title,
+            url: url,
+            grade: grade,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('PDF added successfully!', 'success');
+        document.getElementById('pdf-title-input').value = '';
+        document.getElementById('pdf-url-input').value = '';
+        loadTeacherPdfs();
+    } catch (err) {
+        showToast('Error adding PDF.', 'error');
+    } finally {
+        setButtonLoading('save-pdf-btn', false);
+    }
+}
+
+async function loadTeacherPdfs() {
+    const grid = document.getElementById('teacher-pdf-grid');
+    grid.innerHTML = '<div class="col-span-full text-center py-8 shimmer rounded-2xl h-24"></div>';
+    try {
+        const snapshot = await db.collection('pdfs').orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            grid.innerHTML = '<div class="col-span-full text-center py-8 text-brown-400/50">No PDFs added yet.</div>';
+        } else {
+            grid.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5">
+                    <h4 class="font-bold text-brown-400 text-sm">${escapeHtml(data.title)}</h4>
+                    <p class="text-xs opacity-60 mt-1">${data.grade?.toUpperCase()}</p>
+                    <div class="flex gap-2 mt-3">
+                        <a href="${escapeHtml(data.url)}" target="_blank" class="text-xs text-brown-400 underline">Open</a>
+                        <button onclick="deletePdf('${doc.id}')" class="text-rose-400 hover:text-rose-500 text-xs">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        grid.innerHTML = '<div class="col-span-full text-center py-8 text-rose-400">Error loading PDFs.</div>';
+    }
+}
+
+async function deletePdf(id) {
+    if (!confirm('Delete this PDF permanently?')) return;
+    try {
+        await db.collection('pdfs').doc(id).delete();
+        showToast('PDF deleted.', 'info');
+        loadTeacherPdfs();
+    } catch (err) {
+        showToast('Error deleting PDF.', 'error');
+    }
+}
+
+// ===================== FORUM MODERATION =====================
+async function loadTeacherForum() {
+    const list = document.getElementById('teacher-pending-questions');
+    list.innerHTML = '<div class="text-center py-8 shimmer rounded-2xl h-24"></div>';
+    try {
+        const snapshot = await db.collection('questions').where('answered', '==', false).orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) {
+            list.innerHTML = '<div class="text-center py-8 text-brown-400/50">No pending questions. Great job!</div>';
+        } else {
+            list.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `<div class="glass-card rounded-2xl p-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-400 text-sm shrink-0">❓</div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium mb-2">${escapeHtml(data.text)}</p>
+                            <p class="text-[10px] opacity-50 mb-3">By: ${escapeHtml(data.studentName || 'Unknown')} • ${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : ''}</p>
+                            ${data.fileUrl ? `<a href="${escapeHtml(data.fileUrl)}" target="_blank" class="text-xs text-brown-400 underline mb-2 inline-block">📎 View Attachment</a>` : ''}
+                            <div class="flex gap-2">
+                                <input type="text" id="answer-${doc.id}" placeholder="Type your answer..." class="flex-1 bg-brown-900/20 border border-brown-400/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brown-400 text-white placeholder-brown-400/50">
+                                <button onclick="answerQuestion('${doc.id}')" class="btn-gold px-4 py-2 rounded-xl text-xs font-bold">Reply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        list.innerHTML = '<div class="text-center py-8 text-rose-400">Error loading questions.</div>';
+    }
+}
+
+async function answerQuestion(id) {
+    const input = document.getElementById('answer-' + id);
+    const answer = input.value.trim();
+    if (!answer) { showToast('Please type an answer.', 'error'); return; }
+    try {
+        await db.collection('questions').doc(id).update({
+            answered: true,
+            answer: answer,
+            answeredAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Answer submitted!', 'success');
+        loadTeacherForum();
+    } catch (err) {
+        showToast('Error submitting answer.', 'error');
+    }
+}
+
+// ===================== UTILITIES =====================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ===================== INIT =====================
+// Pre-load builder with one question
+addQuestionToBuilder();
+</script>
+</body>
+</html>
